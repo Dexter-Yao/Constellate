@@ -1,6 +1,7 @@
 # ABOUTME: ModelRegistry 单元测试
 # ABOUTME: 验证 LLM 配置中心的加载、获取与缓存行为
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -77,3 +78,53 @@ class TestModelRegistry:
             model="azure_openai:gpt-5.2",
             azure_deployment="gpt-52-eastus",
         )
+
+    def test_load_from_toml_resolves_env_vars(self, tmp_path: Path) -> None:
+        """load_from_toml 应解析配置中的环境变量占位符。"""
+        toml_content = """
+[models.test]
+model = "azure_openai:gpt-5.2"
+api_key = "${TEST_API_KEY}"
+"""
+        toml_file = tmp_path / "models.toml"
+        toml_file.write_text(toml_content)
+
+        with patch.dict("os.environ", {"TEST_API_KEY": "secret-key-123"}):
+            ModelRegistry.load_from_toml(toml_file)
+
+        assert ModelRegistry._profiles["test"]["api_key"] == "secret-key-123"
+        assert ModelRegistry._profiles["test"]["model"] == "azure_openai:gpt-5.2"
+
+    def test_load_from_toml_raises_on_missing_env_var(self, tmp_path: Path) -> None:
+        """load_from_toml 遇到未设置的环境变量应抛出 ValueError。"""
+        toml_content = """
+[models.test]
+model = "azure_openai:gpt-5.2"
+api_key = "${UNDEFINED_VAR}"
+"""
+        toml_file = tmp_path / "models.toml"
+        toml_file.write_text(toml_content)
+
+        with patch.dict("os.environ", {}, clear=True):
+            with pytest.raises(ValueError, match="UNDEFINED_VAR"):
+                ModelRegistry.load_from_toml(toml_file)
+
+    @patch("langchain_community.chat_models.tongyi.ChatTongyi")
+    def test_get_tongyi_provider_creates_chat_tongyi(
+        self, mock_tongyi: MagicMock
+    ) -> None:
+        """provider=tongyi 时应使用 ChatTongyi 而非 init_chat_model。"""
+        mock_instance = MagicMock()
+        mock_tongyi.return_value = mock_instance
+
+        ModelRegistry.configure({
+            "qwen": {
+                "provider": "tongyi",
+                "model": "qwen3-max",
+            },
+        })
+        result = ModelRegistry.get("qwen")
+
+        mock_tongyi.assert_called_once_with(model="qwen3-max")
+        assert result is mock_instance
+
