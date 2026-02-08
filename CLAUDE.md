@@ -7,11 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 产品上下文
 
-Aligner 是基于教练协议的长期行为对齐系统，减脂为首个落地场景。核心方法论：**S-PDCA（State → Plan → Do → Check → Act）**。
+Constellate 是基于教练协议的长期行为对齐系统，减脂为首个落地场景。核心方法论：**S-PDCA（State → Plan → Do → Check → Act）**。
 
 关键参考文档：
 - `product_memo.md` — 产品定位、理论基础、系统逻辑与数据架构
-- `product_design.md` — 设计系统规范（Wayfarer's Protocol）
+- `product_design.md` — 设计系统规范（Starpath Protocol）
 
 ## 开发工具链
 
@@ -40,3 +40,4 @@ Aligner 是基于教练协议的长期行为对齐系统，减脂为首个落地
 | 日期 | 变更内容 |
 |------|----------|
 | 2026-02-08 | 初始创建：产品上下文、工具链、代码规范与架构约定 |
+| 2026-02-08 | 品牌重命名 Aligner → Constellate；设计系统 Wayfarer's Protocol → Starpath Protocol |
