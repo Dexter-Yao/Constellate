@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-from aligner.config.models import ModelRegistry
-from aligner.config.prompts import PromptRegistry
-from aligner.agent import create_coach_agent
+from aligner_backend.config.models import ModelRegistry
+from aligner_backend.config.prompts import PromptRegistry
+from aligner_backend.agent import create_coach_agent
 
 PROJECT_ROOT = Path(__file__).parent
 

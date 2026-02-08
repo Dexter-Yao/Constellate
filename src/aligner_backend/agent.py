@@ -8,8 +8,8 @@ from langgraph.store.memory import InMemoryStore
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
 
-from aligner.config.models import ModelRegistry
-from aligner.config.prompts import PromptRegistry
+from aligner_backend.config.models import ModelRegistry
+from aligner_backend.config.prompts import PromptRegistry
 
 
 def _create_backend_factory() -> callable:
