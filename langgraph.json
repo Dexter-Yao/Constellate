@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "coach": "./src/aligner_backend/graph.py:graph"
+  },
+  "env": ".env"
+}
