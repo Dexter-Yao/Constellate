@@ -1,5 +1,5 @@
 # ABOUTME: PromptRegistry 单元测试
-# ABOUTME: 验证提示词加载、获取与错误处理行为
+# ABOUTME: 验证 Jinja2 模板加载、渲染、变量注入与错误处理
 
 from pathlib import Path
 
@@ -9,59 +9,61 @@ from aligner_backend.config.prompts import PromptRegistry
 
 
 class TestPromptRegistry:
-    """PromptRegistry 全局提示词管理中心测试。"""
+    """PromptRegistry Jinja2 提示词管理中心测试。"""
 
     def setup_method(self) -> None:
         """每个测试前重置 registry 状态。"""
-        PromptRegistry._prompts = {}
+        PromptRegistry._env = None
 
-    def test_load_reads_md_files(self, tmp_path: Path) -> None:
-        """load 应从目录加载所有 .md 文件。"""
-        (tmp_path / "coach_system.md").write_text("你是教练。")
-        (tmp_path / "analyzer.md").write_text("你是分析师。")
-
+    def test_load_creates_environment(self, tmp_path: Path) -> None:
+        """load 应创建 Jinja2 Environment。"""
+        (tmp_path / "coach_system.j2").write_text("你是教练。")
         PromptRegistry.load(tmp_path)
+        assert PromptRegistry._env is not None
 
-        assert "coach_system" in PromptRegistry._prompts
-        assert "analyzer" in PromptRegistry._prompts
-
-    def test_load_ignores_non_md_files(self, tmp_path: Path) -> None:
-        """load 应忽略非 .md 文件。"""
-        (tmp_path / "coach_system.md").write_text("你是教练。")
-        (tmp_path / "config.toml").write_text("[settings]")
-        (tmp_path / "notes.txt").write_text("备注")
-
-        PromptRegistry.load(tmp_path)
-
-        assert len(PromptRegistry._prompts) == 1
-        assert "coach_system" in PromptRegistry._prompts
-
-    def test_get_returns_prompt_content(self, tmp_path: Path) -> None:
-        """get 应返回提示词的完整内容。"""
+    def test_get_returns_template_content(self, tmp_path: Path) -> None:
+        """get 应返回模板渲染结果。"""
         content = "你是 Aligner 的教练。\n\n核心原则：冷静、精准。"
-        (tmp_path / "coach_system.md").write_text(content)
-
+        (tmp_path / "coach_system.j2").write_text(content)
         PromptRegistry.load(tmp_path)
         result = PromptRegistry.get("coach_system")
-
         assert result == content
 
-    def test_get_unknown_name_raises(self) -> None:
-        """获取未加载的提示词应抛出 KeyError。"""
-        with pytest.raises(KeyError):
+    def test_get_strips_jinja2_comments(self, tmp_path: Path) -> None:
+        """Jinja2 注释不应出现在渲染结果中。"""
+        (tmp_path / "test.j2").write_text(
+            "{# 这是注释，不应发送给 LLM #}\n你是教练。"
+        )
+        PromptRegistry.load(tmp_path)
+        result = PromptRegistry.get("test")
+        assert "注释" not in result
+        assert "你是教练。" in result
+
+    def test_get_renders_variables(self, tmp_path: Path) -> None:
+        """get 应渲染 Jinja2 变量。"""
+        (tmp_path / "test.j2").write_text("路径: {{ ledger_base }}")
+        PromptRegistry.load(tmp_path)
+        result = PromptRegistry.get("test", ledger_base="/user/ledger")
+        assert result == "路径: /user/ledger"
+
+    def test_get_undefined_variable_raises(self, tmp_path: Path) -> None:
+        """模板中使用未提供的变量应抛出异常（StrictUndefined）。"""
+        from jinja2 import UndefinedError
+
+        (tmp_path / "test.j2").write_text("路径: {{ missing_var }}")
+        PromptRegistry.load(tmp_path)
+        with pytest.raises(UndefinedError):
+            PromptRegistry.get("test")
+
+    def test_get_unknown_template_raises(self, tmp_path: Path) -> None:
+        """获取未加载的模板应抛出异常。"""
+        from jinja2 import TemplateNotFound
+
+        PromptRegistry.load(tmp_path)
+        with pytest.raises(TemplateNotFound):
             PromptRegistry.get("nonexistent")
 
-    def test_load_clears_previous_prompts(self, tmp_path: Path) -> None:
-        """重新 load 应清除之前加载的提示词。"""
-        PromptRegistry._prompts["old_prompt"] = "旧内容"
-
-        (tmp_path / "new_prompt.md").write_text("新内容")
-        PromptRegistry.load(tmp_path)
-
-        assert "old_prompt" not in PromptRegistry._prompts
-        assert "new_prompt" in PromptRegistry._prompts
-
     def test_load_empty_directory(self, tmp_path: Path) -> None:
-        """加载空目录应正常执行，结果为空。"""
+        """加载空目录应正常执行。"""
         PromptRegistry.load(tmp_path)
-        assert PromptRegistry._prompts == {}
+        assert PromptRegistry._env is not None
