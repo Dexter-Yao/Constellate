@@ -7,11 +7,12 @@ import os
 from langchain_core.tools import tool
 from langgraph.types import interrupt
 
-_intervention_cache: dict[int, str] = {}
+_intervention_cache: dict[int, tuple[str, str]] = {}
 """模块级缓存，避免 resume 重执行时重复调用 Gemini API。
 
 LangGraph 在 interrupt() 后 resume 时会从 node 起重新执行。
 缓存确保同一 prompt 不会重复调用付费 API。
+值为 (base64_data, mime_type) 元组。
 """
 
 
@@ -51,14 +52,17 @@ def compose_experiential_intervention(
             ),
         )
         image_part = response.candidates[0].content.parts[0]
-        _intervention_cache[cache_key] = base64.b64encode(
-            image_part.inline_data.data
-        ).decode()
+        _intervention_cache[cache_key] = (
+            base64.b64encode(image_part.inline_data.data).decode(),
+            image_part.inline_data.mime_type or "image/jpeg",
+        )
+
+    cached_b64, cached_mime = _intervention_cache[cache_key]
 
     decision = interrupt({
         "type": "experiential_intervention_review",
-        "image_base64": _intervention_cache[cache_key],
-        "mime_type": "image/png",
+        "image_base64": cached_b64,
+        "mime_type": cached_mime,
         "purpose": purpose,
         "caption": caption,
     })

@@ -90,7 +90,8 @@ export function ChatContainer() {
     }, [stream.messages]);
 
     // ── Interrupt 检测 ──
-    const interruptData = stream.interrupt;
+    // stream.interrupt 结构为 { id, value, ... }，实际 payload 在 .value 中
+    const interruptData = stream.interrupt?.value;
 
     // ── HITL resume 处理 ──
     const handleHITLApprove = useCallback(async () => {
