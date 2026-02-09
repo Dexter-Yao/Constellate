@@ -6,15 +6,15 @@ from unittest.mock import MagicMock, patch
 import pytest
 from langgraph.store.memory import InMemoryStore
 
-from aligner_backend.agent import create_coach_agent
+from constellate.agent import create_coach_agent
 
 
 class TestCreateCoachAgent:
     """Coach Agent 工厂函数测试。"""
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_passes_model_from_registry(
         self,
         mock_model_reg: MagicMock,
@@ -33,9 +33,9 @@ class TestCreateCoachAgent:
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs["model"] == mock_model
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_passes_prompt_from_registry(
         self,
         mock_model_reg: MagicMock,
@@ -53,9 +53,9 @@ class TestCreateCoachAgent:
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs["system_prompt"] == "你是教练。"
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_passes_store(
         self,
         mock_model_reg: MagicMock,
@@ -73,9 +73,9 @@ class TestCreateCoachAgent:
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs["store"] is store
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_backend_is_callable_factory(
         self,
         mock_model_reg: MagicMock,
@@ -93,9 +93,9 @@ class TestCreateCoachAgent:
         backend_factory = call_kwargs.kwargs["backend"]
         assert callable(backend_factory)
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_backend_factory_creates_composite(
         self,
         mock_model_reg: MagicMock,
@@ -119,9 +119,9 @@ class TestCreateCoachAgent:
         backend = backend_factory(mock_runtime)
         assert isinstance(backend, CompositeBackend)
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_no_custom_tools_in_v1(
         self,
         mock_model_reg: MagicMock,
@@ -138,9 +138,9 @@ class TestCreateCoachAgent:
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs.get("tools") is None
 
-    @patch("aligner_backend.agent.create_deep_agent")
-    @patch("aligner_backend.agent.PromptRegistry")
-    @patch("aligner_backend.agent.ModelRegistry")
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
     def test_sets_agent_name(
         self,
         mock_model_reg: MagicMock,

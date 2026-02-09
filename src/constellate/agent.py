@@ -8,8 +8,8 @@ from langgraph.store.memory import InMemoryStore
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
 
-from aligner_backend.config.models import ModelRegistry
-from aligner_backend.config.prompts import PromptRegistry
+from constellate.config.models import ModelRegistry
+from constellate.config.prompts import PromptRegistry
 
 
 def _create_backend_factory() -> callable:
@@ -26,7 +26,7 @@ def _create_backend_factory() -> callable:
             routes={
                 "/user/": StoreBackend(
                     rt,
-                    namespace=lambda ctx: ("aligner", "user"),
+                    namespace=lambda ctx: ("constellate", "user"),
                 ),
             },
         )
@@ -41,15 +41,16 @@ def create_coach_agent(
     """创建 Coach Agent。
 
     Args:
-        store: 持久化存储后端。默认使用 InMemoryStore。
+        store: 持久化存储后端。默认为 None，由 LangGraph API 自动注入。
     """
-    if store is None:
-        store = InMemoryStore()
+    kwargs = {
+        "model": ModelRegistry.get("coach"),
+        "system_prompt": PromptRegistry.get("coach_system"),
+        "backend": _create_backend_factory(),
+        "name": "coach",
+    }
+    if store is not None:
+        kwargs["store"] = store
 
-    return create_deep_agent(
-        model=ModelRegistry.get("coach"),
-        system_prompt=PromptRegistry.get("coach_system"),
-        backend=_create_backend_factory(),
-        store=store,
-        name="coach",
-    )
+    return create_deep_agent(**kwargs)
+

@@ -52,24 +52,24 @@ class TestGraphModuleStructure:
 
     def test_graph_py_exists(self) -> None:
         """graph.py 文件应存在。"""
-        graph_path = _PROJECT_ROOT / "src" / "aligner_backend" / "graph.py"
+        graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         assert graph_path.exists()
 
     def test_graph_py_has_graph_variable(self) -> None:
         """graph.py 应包含模块级 graph 变量赋值。"""
-        graph_path = _PROJECT_ROOT / "src" / "aligner_backend" / "graph.py"
+        graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         source = graph_path.read_text()
         assert "graph = create_coach_agent()" in source
 
     def test_graph_py_calls_init(self) -> None:
         """graph.py 应在模块级调用 _init()。"""
-        graph_path = _PROJECT_ROOT / "src" / "aligner_backend" / "graph.py"
+        graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         source = graph_path.read_text()
         assert "_init()" in source
 
     def test_graph_py_imports_registries(self) -> None:
         """graph.py 应导入 ModelRegistry 和 PromptRegistry。"""
-        graph_path = _PROJECT_ROOT / "src" / "aligner_backend" / "graph.py"
+        graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         source = graph_path.read_text()
-        assert "from aligner_backend.config.models import ModelRegistry" in source
-        assert "from aligner_backend.config.prompts import PromptRegistry" in source
+        assert "from constellate.config.models import ModelRegistry" in source
+        assert "from constellate.config.prompts import PromptRegistry" in source

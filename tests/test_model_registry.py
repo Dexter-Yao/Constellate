@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aligner_backend.config.models import ModelRegistry
+from constellate.config.models import ModelRegistry
 
 
 class TestModelRegistry:
@@ -31,7 +31,7 @@ class TestModelRegistry:
         ModelRegistry.configure({"coach": {"model": "openai:gpt-4o"}})
         assert ModelRegistry._instances == {}
 
-    @patch("aligner_backend.config.models.init_chat_model")
+    @patch("constellate.config.models.init_chat_model")
     def test_get_creates_model_instance(self, mock_init: MagicMock) -> None:
         """get 应使用 profile 配置创建模型实例。"""
         mock_model = MagicMock()
@@ -43,7 +43,7 @@ class TestModelRegistry:
         mock_init.assert_called_once_with(model="openai:gpt-4o")
         assert result is mock_model
 
-    @patch("aligner_backend.config.models.init_chat_model")
+    @patch("constellate.config.models.init_chat_model")
     def test_get_caches_instance(self, mock_init: MagicMock) -> None:
         """多次 get 同一 profile 应返回缓存实例，不重复创建。"""
         mock_init.return_value = MagicMock()
@@ -61,7 +61,7 @@ class TestModelRegistry:
         with pytest.raises(KeyError):
             ModelRegistry.get("nonexistent")
 
-    @patch("aligner_backend.config.models.init_chat_model")
+    @patch("constellate.config.models.init_chat_model")
     def test_get_passes_extra_kwargs(self, mock_init: MagicMock) -> None:
         """profile 中的额外参数应传递给 init_chat_model。"""
         mock_init.return_value = MagicMock()

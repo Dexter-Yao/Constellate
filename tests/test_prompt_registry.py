@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from aligner_backend.config.prompts import PromptRegistry
+from constellate.config.prompts import PromptRegistry
 
 
 class TestPromptRegistry:
