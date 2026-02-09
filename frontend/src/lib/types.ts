@@ -1,11 +1,40 @@
 // ABOUTME: A2UI type definitions
 // ABOUTME: Component interfaces, payload/response types, and type guards for the unified A2UI protocol
 
+// ── Multimodal Content Parts ──
+
+export interface TextContentPart {
+    type: "text";
+    text: string;
+}
+
+export interface ImageContentPart {
+    type: "image_url";
+    image_url: { url: string };
+}
+
+export type ContentPart = TextContentPart | ImageContentPart;
+
 export interface Message {
     id: string;
     role: "user" | "assistant";
-    content: string;
+    content: string | ContentPart[];
     timestamp: Date;
+}
+
+export function getTextContent(message: Message): string {
+    if (typeof message.content === "string") return message.content;
+    return message.content
+        .filter((p): p is TextContentPart => p.type === "text")
+        .map((p) => p.text)
+        .join("");
+}
+
+export function getImageUrls(message: Message): string[] {
+    if (typeof message.content === "string") return [];
+    return message.content
+        .filter((p): p is ImageContentPart => p.type === "image_url")
+        .map((p) => p.image_url.url);
 }
 
 // ── A2UI Component Types ──
@@ -99,4 +128,27 @@ export function isA2UIPayload(data: unknown): data is A2UIPayload {
         "type" in data &&
         (data as A2UIPayload).type === "a2ui"
     );
+}
+
+// ── Map Page Types ──
+
+export interface InterventionCard {
+    id: string;
+    imageUrl: string;          // Base64 data URL
+    caption: string;           // Coach 文案
+    timestamp: Date;
+    purpose: "future_self" | "scene_rehearsal" | "metaphor_mirror" |
+             "reframe_contrast" | "identity_evolution";
+}
+
+export interface ChapterMetadata {
+    identityStatement: string; // 身份宣言
+    goal: string;              // e.g., "-8kg"
+    currentDay: number;        // 第 N 天
+    startDate: Date;
+}
+
+export interface MapPageData {
+    chapter: ChapterMetadata;
+    cards: InterventionCard[];
 }

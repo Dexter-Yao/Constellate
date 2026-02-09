@@ -1,25 +1,235 @@
-/* ABOUTME: Map 页面样式 */
-/* ABOUTME: 占位页面居中布局 */
+/* ABOUTME: Map 页面样式 - Starpath Protocol 设计系统 */
+/* ABOUTME: 实现卡片归档视图、全屏查看、删除对话框等样式 */
 
+/* 页面容器 */
 .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: calc(100vh - var(--tab-bar-height));
-    background: var(--color-parchment);
+  padding: var(--spacing-xl) var(--spacing-md);
+  padding-bottom: calc(var(--tab-bar-height) + var(--spacing-xl));
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.title {
-    font-family: var(--font-mono);
-    font-size: 24px;
-    letter-spacing: 4px;
-    color: var(--color-obsidian);
-    margin-bottom: var(--spacing-md);
+/* Chapter 元数据 */
+.chapterMetadata {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
 }
 
-.subtitle {
-    font-family: var(--font-serif);
-    font-size: 16px;
-    color: var(--color-gray-40);
+.identityStatement {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--color-obsidian);
+  margin-bottom: var(--spacing-sm);
+}
+
+.goalLabel {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-gray-40);
+}
+
+/* 卡片列表 */
+.cardsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.interventionCard {
+  border: 1px solid var(--color-gray-10);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+.interventionCard:hover {
+  border-color: var(--color-gray-20);
+}
+
+.deleteButton {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  background: none;
+  color: var(--color-risk-red);
+  font-size: 24px;
+  line-height: 1;
+  padding: var(--spacing-xs);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.interventionCard:hover .deleteButton {
+  opacity: 1;
+}
+
+.cardImage {
+  width: 80%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  margin: 0 auto var(--spacing-md);
+  display: block;
+}
+
+.cardCaption {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-obsidian);
+  margin-bottom: var(--spacing-sm);
+}
+
+.cardTimestamp {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-gray-40);
+  text-align: right;
+}
+
+/* 空状态 */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) 0;
+  min-height: 300px;
+  justify-content: center;
+}
+
+.emptyMessage {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-gray-40);
+  text-align: center;
+  max-width: 280px;
+}
+
+/* 全屏视图 */
+.fullScreenOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-parchment);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullScreenHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-10);
+}
+
+.backButton {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-obsidian);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.deleteButtonFull {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-risk-red);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.fullScreenContent {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullScreenImage {
+  width: 90%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  margin: 0 auto var(--spacing-lg);
+}
+
+.fullScreenCaption {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-obsidian);
+  margin-bottom: var(--spacing-md);
+}
+
+.fullScreenFooter {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-gray-40);
+}
+
+/* 确认对话框 */
+.dialogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialogContent {
+  background: var(--color-parchment);
+  padding: var(--spacing-xl);
+  max-width: 320px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.dialogTitle {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--color-obsidian);
+  margin-bottom: var(--spacing-lg);
+  font-weight: 400;
+}
+
+.dialogButtons {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.cancelButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-gray-20);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-obsidian);
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.confirmButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-risk-red);
+  color: var(--color-parchment);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
 }
