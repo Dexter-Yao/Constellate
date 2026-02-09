@@ -68,22 +68,22 @@ class TestModelRegistry:
 
         ModelRegistry.configure({
             "coach": {
-                "model": "azure_openai:gpt-5.2",
-                "azure_deployment": "gpt-52-eastus",
+                "model": "google_genai:gemini-3-pro",
+                "api_key": "test-key",
             },
         })
         ModelRegistry.get("coach")
 
         mock_init.assert_called_once_with(
-            model="azure_openai:gpt-5.2",
-            azure_deployment="gpt-52-eastus",
+            model="google_genai:gemini-3-pro",
+            api_key="test-key",
         )
 
     def test_load_from_toml_resolves_env_vars(self, tmp_path: Path) -> None:
         """load_from_toml 应解析配置中的环境变量占位符。"""
         toml_content = """
 [models.test]
-model = "azure_openai:gpt-5.2"
+model = "google_genai:gemini-3-pro"
 api_key = "${TEST_API_KEY}"
 """
         toml_file = tmp_path / "models.toml"
@@ -93,13 +93,13 @@ api_key = "${TEST_API_KEY}"
             ModelRegistry.load_from_toml(toml_file)
 
         assert ModelRegistry._profiles["test"]["api_key"] == "secret-key-123"
-        assert ModelRegistry._profiles["test"]["model"] == "azure_openai:gpt-5.2"
+        assert ModelRegistry._profiles["test"]["model"] == "google_genai:gemini-3-pro"
 
     def test_load_from_toml_raises_on_missing_env_var(self, tmp_path: Path) -> None:
         """load_from_toml 遇到未设置的环境变量应抛出 ValueError。"""
         toml_content = """
 [models.test]
-model = "azure_openai:gpt-5.2"
+model = "google_genai:gemini-3-pro"
 api_key = "${UNDEFINED_VAR}"
 """
         toml_file = tmp_path / "models.toml"
@@ -109,22 +109,4 @@ api_key = "${UNDEFINED_VAR}"
             with pytest.raises(ValueError, match="UNDEFINED_VAR"):
                 ModelRegistry.load_from_toml(toml_file)
 
-    @patch("langchain_community.chat_models.tongyi.ChatTongyi")
-    def test_get_tongyi_provider_creates_chat_tongyi(
-        self, mock_tongyi: MagicMock
-    ) -> None:
-        """provider=tongyi 时应使用 ChatTongyi 而非 init_chat_model。"""
-        mock_instance = MagicMock()
-        mock_tongyi.return_value = mock_instance
-
-        ModelRegistry.configure({
-            "qwen": {
-                "provider": "tongyi",
-                "model": "qwen3-max",
-            },
-        })
-        result = ModelRegistry.get("qwen")
-
-        mock_tongyi.assert_called_once_with(model="qwen3-max")
-        assert result is mock_instance
 

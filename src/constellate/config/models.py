@@ -76,13 +76,6 @@ class ModelRegistry:
         """获取指定 profile 的模型实例，自动缓存。"""
         if profile not in cls._instances:
             config = cls._profiles[profile].copy()
-            provider = config.pop("provider", None)
-
-            if provider == "tongyi":
-                from langchain_community.chat_models.tongyi import ChatTongyi
-
-                cls._instances[profile] = ChatTongyi(**config)
-            else:
-                cls._instances[profile] = init_chat_model(**config)
+            cls._instances[profile] = init_chat_model(**config)
 
         return cls._instances[profile]

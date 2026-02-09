@@ -18,7 +18,7 @@ def main() -> None:
     ModelRegistry.load_from_toml(config_path)
 
     print("\n" + "=" * 50)
-    print("Testing 'coach' profile (Azure OpenAI GPT-5.2)...")
+    print("Testing 'coach' profile (Gemini 3 Pro)...")
     print("=" * 50)
 
     try:

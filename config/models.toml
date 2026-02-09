@@ -1,33 +1,17 @@
 # ABOUTME: LLM 模型 profile 配置文件
 # ABOUTME: 定义各场景使用的模型及其参数，支持环境变量插值
 
-# 主 Coach Agent 使用 Azure OpenAI GPT-5.2
+# 主 Coach Agent 使用 Gemini 3 Pro
 [models.coach]
-model = "azure_openai:gpt-5.2"
-azure_deployment = "gpt-5.2"
-azure_endpoint = "${AZURE_OPENAI_GPT52_ENDPOINT}"
-api_key = "${AZURE_OPENAI_GPT52_API_KEY}"
-api_version = "${AZURE_OPENAI_GPT52_API_VERSION}"
+model = "google_genai:gemini-3-pro"
+api_key = "${GEMINI_API_KEY}"
 
 # 摘要/压缩中间件使用轻量模型
 [models.summarizer]
-model = "azure_openai:gpt-4.1-nano"
-azure_deployment = "gpt-4.1-nano"
-azure_endpoint = "${AZURE_FOUNDRY_GPT41_NANO_ENDPOINT}"
-api_key = "${AZURE_OPENAI_API_KEY}"
-api_version = "${AZURE_FOUNDRY_API_VERSION}"
+model = "google_genai:gemini-3-flash"
+api_key = "${GEMINI_API_KEY}"
 
 # Intervention Composer Subagent 使用 Gemini Flash 组装干预 prompt
 [models.intervention_composer]
-model = "google_genai:gemini-2.5-flash-lite"
+model = "google_genai:gemini-3-flash"
 api_key = "${GEMINI_API_KEY}"
-
-# Gemini Flash 用于轻量任务
-[models.gemini_flash]
-model = "google_genai:gemini-2.5-flash-lite"
-api_key = "${GEMINI_API_KEY}"
-
-# Qwen 用于中文评估/备用
-[models.qwen]
-provider = "tongyi"
-model = "qwen3-max"
