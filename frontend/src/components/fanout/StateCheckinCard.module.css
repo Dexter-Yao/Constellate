@@ -1,0 +1,111 @@
+/* ABOUTME: 状态签到卡片样式 */
+/* ABOUTME: 滑块采集身体/情绪状态 */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.title {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--color-obsidian);
+    margin: 0;
+}
+
+.sliders {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.sliderGroup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.sliderLabel {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-gray-40);
+    text-transform: uppercase;
+}
+
+.sliderValue {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--color-obsidian);
+}
+
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--color-gray-10);
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-obsidian);
+    cursor: pointer;
+}
+
+.noteInput {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-obsidian);
+    background: transparent;
+    border: 1px solid var(--color-gray-10);
+    border-radius: 4px;
+    padding: var(--spacing-sm);
+    resize: none;
+}
+
+.noteInput::placeholder {
+    color: var(--color-gray-40);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-gray-10);
+}
+
+.confirmButton {
+    flex: 1;
+    background: var(--color-obsidian);
+    color: var(--color-parchment);
+    border: none;
+    border-radius: 999px;
+    padding: 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.outlineButton {
+    flex: 1;
+    background: transparent;
+    color: var(--color-obsidian);
+    border: 1px solid var(--color-obsidian);
+    border-radius: 999px;
+    padding: 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    cursor: pointer;
+}

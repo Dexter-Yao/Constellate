@@ -1,5 +1,5 @@
 # ABOUTME: Coach Agent 工厂函数
-# ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例
+# ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例（含干预工具与 Intervention Composer Subagent）
 
 from collections.abc import Callable
 
@@ -8,9 +8,22 @@ from langgraph.store.base import BaseStore
 
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
+from deepagents.middleware.subagents import SubAgent
 
 from constellate.config.models import ModelRegistry
 from constellate.config.prompts import PromptRegistry
+from constellate.tools.experiential import compose_experiential_intervention
+from constellate.tools.interventions import meal_confirm, protocol_prompt, state_checkin
+
+INTERVENTION_TOOLS = [meal_confirm, state_checkin, protocol_prompt]
+"""Coach 直接调用的干预工具，通过 HITL interrupt_on 实现用户交互。"""
+
+INTERACTIVE_TOOLS = {
+    "meal_confirm": True,
+    "state_checkin": True,
+    "protocol_prompt": True,
+}
+"""需要用户审阅的工具映射，传递给 interrupt_on 参数。"""
 
 
 def _create_backend_factory() -> Callable:
@@ -35,6 +48,21 @@ def _create_backend_factory() -> Callable:
     return factory
 
 
+def _create_intervention_composer() -> SubAgent:
+    """创建 Intervention Composer Subagent 配置。"""
+    return SubAgent(
+        name="intervention_composer",
+        description=(
+            "根据教练干预意图和用户行为上下文，构建并呈现体验式干预。"
+            "基于行为科学理论（Future Self-Continuity、MCII/WOOP、概念隐喻、CBT），"
+            "将教练洞察转化为可感知的体验，辅助用户理解行为模式、感受未来自我、预演应对场景。"
+        ),
+        system_prompt=PromptRegistry.get("intervention_composer_system"),
+        tools=[compose_experiential_intervention],
+        model=ModelRegistry.get("intervention_composer"),
+    )
+
+
 def create_coach_agent(
     *,
     store: BaseStore | None = None,
@@ -50,6 +78,9 @@ def create_coach_agent(
         "backend": _create_backend_factory(),
         "name": "coach",
         "memory": ["/user/coach/AGENTS.md"],
+        "tools": INTERVENTION_TOOLS,
+        "interrupt_on": INTERACTIVE_TOOLS,
+        "subagents": [_create_intervention_composer()],
     }
     if store is not None:
         kwargs["store"] = store

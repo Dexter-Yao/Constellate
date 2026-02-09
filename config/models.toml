@@ -17,6 +17,11 @@ azure_endpoint = "${AZURE_FOUNDRY_GPT41_NANO_ENDPOINT}"
 api_key = "${AZURE_OPENAI_API_KEY}"
 api_version = "${AZURE_FOUNDRY_API_VERSION}"
 
+# Intervention Composer Subagent 使用 Gemini Flash 组装干预 prompt
+[models.intervention_composer]
+model = "google_genai:gemini-2.5-flash-lite"
+api_key = "${GEMINI_API_KEY}"
+
 # Gemini Flash 用于轻量任务
 [models.gemini_flash]
 model = "google_genai:gemini-2.5-flash-lite"

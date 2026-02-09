@@ -344,6 +344,7 @@ source = { editable = "." }
 dependencies = [
     { name = "dashscope" },
     { name = "deepagents" },
+    { name = "google-genai" },
     { name = "jinja2" },
     { name = "langchain-community" },
     { name = "langchain-google-genai" },
@@ -363,6 +364,7 @@ dev = [
 requires-dist = [
     { name = "dashscope", specifier = ">=1.21.0" },
     { name = "deepagents", specifier = ">=0.3.12" },
+    { name = "google-genai", specifier = ">=1.62.0" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "langchain-community", specifier = ">=0.4.0,<1.0.0" },
     { name = "langchain-google-genai", specifier = ">=4.0.0,<5.0.0" },

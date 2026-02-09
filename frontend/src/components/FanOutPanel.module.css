@@ -1,0 +1,72 @@
+/* ABOUTME: 扇出面板样式 */
+/* ABOUTME: 半屏/全屏滑入面板，遮罩层 + 羊皮纸背景 */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--color-gray-20);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease-out;
+}
+
+.overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(245, 241, 235, 0.95);
+    border-top: 1px solid var(--color-gray-10);
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform 300ms ease-out;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.panel.visible {
+    transform: translateY(0);
+}
+
+.half {
+    height: 50vh;
+}
+
+.full {
+    height: calc(100vh - var(--tab-bar-height));
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-10);
+    flex-shrink: 0;
+}
+
+.backButton {
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-gray-40);
+    cursor: pointer;
+    padding: var(--spacing-xs) 0;
+}
+
+.backButton:hover {
+    color: var(--color-obsidian);
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
