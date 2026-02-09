@@ -49,6 +49,7 @@ def create_coach_agent(
         "system_prompt": PromptRegistry.get("coach_system"),
         "backend": _create_backend_factory(),
         "name": "coach",
+        "memory": ["/user/coach/AGENTS.md"],
     }
     if store is not None:
         kwargs["store"] = store

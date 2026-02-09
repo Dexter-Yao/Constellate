@@ -156,3 +156,22 @@ class TestCreateCoachAgent:
 
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs["name"] == "coach"
+
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
+    def test_enables_memory_middleware(
+        self,
+        mock_model_reg: MagicMock,
+        mock_prompt_reg: MagicMock,
+        mock_create: MagicMock,
+    ) -> None:
+        """应启用 MemoryMiddleware，加载 Coach 持久记忆。"""
+        mock_model_reg.get.return_value = MagicMock()
+        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_create.return_value = MagicMock()
+
+        create_coach_agent()
+
+        call_kwargs = mock_create.call_args
+        assert call_kwargs.kwargs["memory"] == ["/user/coach/AGENTS.md"]
