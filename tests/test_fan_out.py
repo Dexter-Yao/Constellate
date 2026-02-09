@@ -79,14 +79,14 @@ class TestFanOutPayload:
         assert payload["components"][0]["kind"] == "text"
 
     @patch("constellate.tools.fan_out.interrupt")
-    def test_default_layout_is_half(self, mock_interrupt) -> None:  # noqa: ANN001
-        """默认 layout 应为 half。"""
+    def test_default_layout_is_three_quarter(self, mock_interrupt) -> None:  # noqa: ANN001
+        """默认 layout 应为 three-quarter。"""
         mock_interrupt.return_value = {"action": "submit", "data": {}}
         fan_out.invoke({
             "components": [{"kind": "text", "content": "hi"}],
         })
         payload = mock_interrupt.call_args[0][0]
-        assert payload["layout"] == "half"
+        assert payload["layout"] == "three-quarter"
 
     @patch("constellate.tools.fan_out.interrupt")
     def test_passes_full_layout(self, mock_interrupt) -> None:  # noqa: ANN001

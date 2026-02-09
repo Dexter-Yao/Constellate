@@ -1,10 +1,15 @@
 # ABOUTME: 体验式干预工具
-# ABOUTME: 调用 Gemini 3 Pro Image API 生成干预内容，通过 A2UI interrupt() 供用户审阅
+# ABOUTME: 调用 Gemini 3 Pro Image API 生成干预内容，通过 A2UI interrupt() 供用户审阅，接受后持久化到 Store
 
 import base64
 import os
+import uuid
+from datetime import datetime, timezone
+from typing import Annotated
 
 from langchain_core.tools import tool
+from langgraph.prebuilt import InjectedStore
+from langgraph.store.base import BaseStore
 from langgraph.types import interrupt
 
 from constellate.a2ui import (
@@ -24,6 +29,43 @@ LangGraph 在 interrupt() 后 resume 时会从 node 起重新执行。
 值为 (base64_data, mime_type) 元组。
 """
 
+INTERVENTIONS_NAMESPACE = ("constellate", "user", "interventions")
+
+
+def _persist_card(
+    *,
+    store: BaseStore | None,
+    image_data_url: str,
+    caption: str,
+    purpose: str,
+) -> str | None:
+    """将干预卡片持久化到 Store。
+
+    Args:
+        store: LangGraph Store 实例。为 None 时跳过持久化。
+        image_data_url: Base64 data URL 格式的图片数据。
+        caption: Coach 文案。
+        purpose: 干预类型标识。
+
+    Returns:
+        卡片 ID，或 None（store 不可用时）。
+    """
+    if store is None:
+        return None
+
+    card_id = f"card_{uuid.uuid4().hex[:8]}"
+    store.put(
+        INTERVENTIONS_NAMESPACE,
+        card_id,
+        {
+            "imageUrl": image_data_url,
+            "caption": caption,
+            "purpose": purpose,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        },
+    )
+    return card_id
+
 
 @tool
 def compose_experiential_intervention(
@@ -31,6 +73,7 @@ def compose_experiential_intervention(
     aspect_ratio: str = "3:4",
     purpose: str = "",
     caption: str = "",
+    store: Annotated[BaseStore | None, InjectedStore()] = None,
 ) -> str:
     """Generate experiential intervention content and present it for user review.
 
@@ -91,5 +134,11 @@ def compose_experiential_intervention(
     if response.action == "reject":
         return f"User dismissed the experiential intervention ({purpose})."
     if response.data.get("decision") == "accept":
+        _persist_card(
+            store=store,
+            image_data_url=f"data:{cached_mime};base64,{cached_b64}",
+            caption=caption,
+            purpose=purpose,
+        )
         return f"User accepted the experiential intervention ({purpose}). {caption}"
     return f"User dismissed the experiential intervention ({purpose})."

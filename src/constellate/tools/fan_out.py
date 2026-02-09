@@ -12,7 +12,7 @@ from constellate.a2ui import A2UIPayload, A2UIResponse
 @tool
 def fan_out(
     components: list[dict[str, Any]],
-    layout: str = "half",
+    layout: str = "three-quarter",
 ) -> str:
     """Present an interactive UI to the user and collect their response.
 
@@ -21,7 +21,7 @@ def fan_out(
 
     Args:
         components: List of component dicts, each with a "kind" field.
-        layout: Display layout — "half" (default) or "full".
+        layout: Display layout — "half", "three-quarter" (default, 75%), or "full".
     """
     payload = A2UIPayload(components=components, layout=layout)
     raw_response = interrupt(payload.model_dump())

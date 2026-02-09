@@ -142,3 +142,82 @@ class TestExperientialInterventionResponse:
         })
 
         assert "dismiss" in result.lower() or "cancel" in result.lower()
+
+
+class TestExperientialCardPersistence:
+    """用户接受干预后，卡片应持久化到 Store。"""
+
+    def test_persist_card_writes_to_store(self) -> None:
+        """_persist_card 应将卡片数据写入 Store。"""
+        from langgraph.store.memory import InMemoryStore
+
+        from constellate.tools.experiential import _persist_card
+
+        store = InMemoryStore()
+        card_id = _persist_card(
+            store=store,
+            image_data_url="data:image/jpeg;base64,abc123",
+            caption="Test caption",
+            purpose="future_self",
+        )
+
+        items = store.search(("constellate", "user", "interventions"))
+        assert len(items) == 1
+        item = items[0]
+        assert item.key == card_id
+        assert item.value["imageUrl"] == "data:image/jpeg;base64,abc123"
+        assert item.value["caption"] == "Test caption"
+        assert item.value["purpose"] == "future_self"
+        assert "timestamp" in item.value
+
+    def test_persist_card_noop_when_store_is_none(self) -> None:
+        """store 为 None 时 _persist_card 应返回 None。"""
+        from constellate.tools.experiential import _persist_card
+
+        result = _persist_card(
+            store=None,
+            image_data_url="data:image/jpeg;base64,abc123",
+            caption="Test",
+            purpose="future_self",
+        )
+        assert result is None
+
+    @patch("constellate.tools.experiential.interrupt")
+    @patch("constellate.tools.experiential._persist_card")
+    def test_accept_triggers_persistence(self, mock_persist, mock_interrupt) -> None:  # noqa: ANN001
+        """用户接受时应调用 _persist_card。"""
+        mock_interrupt.return_value = {"action": "submit", "data": {"decision": "accept"}}
+
+        compose_experiential_intervention.invoke({
+            "prompt": TEST_PROMPT,
+            "purpose": "future_self",
+            "caption": "A glimpse.",
+        })
+
+        mock_persist.assert_called_once()
+
+    @patch("constellate.tools.experiential.interrupt")
+    @patch("constellate.tools.experiential._persist_card")
+    def test_reject_does_not_persist(self, mock_persist, mock_interrupt) -> None:  # noqa: ANN001
+        """用户拒绝时不应调用 _persist_card。"""
+        mock_interrupt.return_value = {"action": "reject"}
+
+        compose_experiential_intervention.invoke({
+            "prompt": TEST_PROMPT,
+            "purpose": "future_self",
+        })
+
+        mock_persist.assert_not_called()
+
+    @patch("constellate.tools.experiential.interrupt")
+    @patch("constellate.tools.experiential._persist_card")
+    def test_dismiss_does_not_persist(self, mock_persist, mock_interrupt) -> None:  # noqa: ANN001
+        """用户选择 dismiss 时不应调用 _persist_card。"""
+        mock_interrupt.return_value = {"action": "submit", "data": {"decision": "dismiss"}}
+
+        compose_experiential_intervention.invoke({
+            "prompt": TEST_PROMPT,
+            "purpose": "future_self",
+        })
+
+        mock_persist.assert_not_called()

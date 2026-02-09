@@ -232,9 +232,9 @@ class TestA2UIPayload:
         p = A2UIPayload(components=[TextComponent(content="hi")])
         assert p.type == "a2ui"
 
-    def test_layout_defaults_half(self) -> None:
+    def test_layout_defaults_three_quarter(self) -> None:
         p = A2UIPayload(components=[])
-        assert p.layout == "half"
+        assert p.layout == "three-quarter"
 
     def test_full_layout(self) -> None:
         p = A2UIPayload(components=[], layout="full")

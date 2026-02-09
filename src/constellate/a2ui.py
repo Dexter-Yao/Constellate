@@ -110,7 +110,7 @@ class A2UIPayload(BaseModel):
 
     type: Literal["a2ui"] = "a2ui"
     components: list[Component]
-    layout: Literal["half", "full"] = "half"
+    layout: Literal["half", "three-quarter", "full"] = "three-quarter"
 
 
 class A2UIResponse(BaseModel):
