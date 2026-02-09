@@ -1,23 +1,18 @@
-# ABOUTME: Aligner 应用入口
+# ABOUTME: Constellate 应用入口
 # ABOUTME: 初始化配置并创建 Coach Agent
 
 from pathlib import Path
 
-from aligner_backend.config.models import ModelRegistry
-from aligner_backend.config.prompts import PromptRegistry
-from aligner_backend.agent import create_coach_agent
+from constellate.config.models import ModelRegistry
+from constellate.config.prompts import PromptRegistry
+from constellate.agent import create_coach_agent
 
 PROJECT_ROOT = Path(__file__).parent
 
 
 def init() -> None:
     """初始化全局配置。"""
-    ModelRegistry.configure({
-        "coach": {
-            "model": "azure_openai:gpt-5.2",
-            "azure_deployment": "gpt-52-eastus",
-        },
-    })
+    ModelRegistry.load_from_toml(PROJECT_ROOT / "config" / "models.toml")
     PromptRegistry.load(PROJECT_ROOT / "prompts")
 
 

@@ -8,6 +8,6 @@
 
 ## 2026-02-08: langgraph.json 使用文件路径格式
 
-- **发生了什么**：查阅 LangGraph 官方文档确认 `langgraph.json` 的 `graphs` 配置使用文件路径格式 `./src/aligner_backend/graph.py:graph`，而非 Python 模块路径格式 `src.aligner_backend.graph:graph`。
+- **发生了什么**：查阅 LangGraph 官方文档确认 `langgraph.json` 的 `graphs` 配置使用文件路径格式 `./src/constellate/graph.py:graph`，而非 Python 模块路径格式 `src.constellate.graph:graph`。
 - **为什么重要**：格式错误会导致 `langgraph dev` 无法启动。
 - **下次怎么做**：始终以 `./path/to/file.py:variable` 格式配置 langgraph.json。
