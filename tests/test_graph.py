@@ -62,14 +62,13 @@ class TestGraphModuleStructure:
         assert "graph = create_coach_agent()" in source
 
     def test_graph_py_calls_init(self) -> None:
-        """graph.py 应在模块级调用 _init()。"""
+        """graph.py 应在模块级调用 init()。"""
         graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         source = graph_path.read_text()
-        assert "_init()" in source
+        assert "init(_PROJECT_ROOT)" in source
 
-    def test_graph_py_imports_registries(self) -> None:
-        """graph.py 应导入 ModelRegistry 和 PromptRegistry。"""
+    def test_graph_py_imports_bootstrap(self) -> None:
+        """graph.py 应导入 bootstrap.init。"""
         graph_path = _PROJECT_ROOT / "src" / "constellate" / "graph.py"
         source = graph_path.read_text()
-        assert "from constellate.config.models import ModelRegistry" in source
-        assert "from constellate.config.prompts import PromptRegistry" in source
+        assert "from constellate.bootstrap import init" in source
