@@ -1,0 +1,60 @@
+/* ABOUTME: 消息列表样式 */
+/* ABOUTME: Coach 消息左对齐衬线体，用户消息右对齐无衬线体，无气泡 */
+
+.container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    padding-bottom: calc(var(--input-bar-height) + var(--tab-bar-height) + var(--spacing-md));
+}
+
+.timestamp {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-gray-40);
+    margin: var(--spacing-lg) 0 var(--spacing-md);
+}
+
+.message {
+    margin-bottom: var(--spacing-md);
+    max-width: 85%;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.assistant {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--color-obsidian);
+    text-align: left;
+    margin-right: auto;
+}
+
+.user {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--color-obsidian);
+    text-align: right;
+    margin-left: auto;
+}
+
+.streaming .cursor {
+    display: inline-block;
+    animation: blink 1s step-end infinite;
+    color: var(--color-gray-40);
+}
+
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
+}

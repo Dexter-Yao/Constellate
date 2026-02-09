@@ -1,0 +1,9 @@
+/* ABOUTME: 对话容器样式 */
+/* ABOUTME: 全屏布局，消息列表填充可用空间 */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--color-parchment);
+}

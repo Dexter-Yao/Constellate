@@ -1,0 +1,91 @@
+/* ABOUTME: Starpath Protocol 设计系统全局样式 */
+/* ABOUTME: 定义 Obsidian & Parchment 视觉语言的设计 tokens */
+
+/* 字体导入 */
+@import '@fontsource/noto-serif-sc/400.css';
+@import '@fontsource/noto-serif-sc/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+
+:root {
+  /* 核心色彩 */
+  --color-obsidian: #1A1816;
+  --color-parchment: #F5F1EB;
+  --color-risk-red: #8B3A3A;
+  --color-aligned: #8A9A8A;
+  --color-gray-40: rgba(26, 24, 22, 0.4);
+  --color-gray-10: rgba(26, 24, 22, 0.1);
+  --color-gray-20: rgba(26, 24, 22, 0.2);
+
+  /* 字体 */
+  --font-serif: 'Noto Serif SC', serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* 尺寸 */
+  --tab-bar-height: 44px;
+  --input-bar-height: 48px;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--color-obsidian);
+  background: var(--color-parchment);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 按钮基础样式 */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Obsidian Pill 按钮 */
+.obsidian-pill {
+  background: var(--color-obsidian);
+  color: var(--color-parchment);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.obsidian-pill:hover {
+  opacity: 0.85;
+}
+
+.obsidian-pill:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

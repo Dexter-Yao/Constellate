@@ -1,0 +1,25 @@
+/* ABOUTME: Journal 页面样式 */
+/* ABOUTME: 占位页面居中布局 */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - var(--tab-bar-height));
+    background: var(--color-parchment);
+}
+
+.title {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    letter-spacing: 4px;
+    color: var(--color-obsidian);
+    margin-bottom: var(--spacing-md);
+}
+
+.subtitle {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: var(--color-gray-40);
+}
