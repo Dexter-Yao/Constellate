@@ -1,5 +1,5 @@
-// ABOUTME: 类型定义
-// ABOUTME: 定义消息、HITL 交互、体验式干预审阅的数据结构与类型守卫
+// ABOUTME: A2UI type definitions
+// ABOUTME: Component interfaces, payload/response types, and type guards for the unified A2UI protocol
 
 export interface Message {
     id: string;
@@ -8,92 +8,95 @@ export interface Message {
     timestamp: Date;
 }
 
-// ── HITL 类型 ──
+// ── A2UI Component Types ──
 
-export interface ActionRequest {
+export interface TextComponent {
+    kind: "text";
+    content: string;
+}
+
+export interface ImageComponent {
+    kind: "image";
+    src: string;
+    alt?: string;
+}
+
+export interface SliderComponent {
+    kind: "slider";
     name: string;
-    args: Record<string, unknown>;
+    label: string;
+    min?: number;
+    max?: number;
+    step?: number;
+    value?: number | null;
 }
 
-export interface HITLRequest {
-    action_requests: ActionRequest[];
-    review_configs: Array<{
-        action_name: string;
-        allowed_decisions: string[];
-    }>;
+export interface TextInputComponent {
+    kind: "text_input";
+    name: string;
+    label: string;
+    placeholder?: string;
+    value?: string;
 }
 
-export interface HITLDecision {
-    type: "approve" | "edit" | "reject";
-    edited_action?: { name: string; args: Record<string, unknown> };
-    message?: string;
+export interface NumberInputComponent {
+    kind: "number_input";
+    name: string;
+    label: string;
+    unit?: string;
+    value?: number | null;
 }
 
-export interface HITLResponse {
-    decisions: HITLDecision[];
+export interface SelectOption {
+    label: string;
+    value: string;
 }
 
-// ── 体验式干预审阅 ──
-
-export interface ExperientialReview {
-    type: "experiential_intervention_review";
-    image_base64: string;
-    mime_type: string;
-    purpose: string;
-    caption: string;
+export interface SelectComponent {
+    kind: "select";
+    name: string;
+    label: string;
+    options: SelectOption[];
+    value?: string;
 }
 
-// ── 统一 Interrupt ──
-
-export type InterruptPayload = HITLRequest | ExperientialReview;
-
-export function isHITLRequest(data: unknown): data is HITLRequest {
-    return (
-        !!data &&
-        typeof data === "object" &&
-        "action_requests" in data
-    );
+export interface MultiSelectComponent {
+    kind: "multi_select";
+    name: string;
+    label: string;
+    options: SelectOption[];
+    value?: string[];
 }
 
-export function isExperientialReview(data: unknown): data is ExperientialReview {
+export type Component =
+    | TextComponent
+    | ImageComponent
+    | SliderComponent
+    | TextInputComponent
+    | NumberInputComponent
+    | SelectComponent
+    | MultiSelectComponent;
+
+// ── A2UI Payload & Response ──
+
+export interface A2UIPayload {
+    type: "a2ui";
+    components: Component[];
+    layout: "half" | "full";
+}
+
+export interface A2UIResponse {
+    action: "submit" | "reject" | "skip";
+    data: Record<string, unknown>;
+}
+
+// ── Type Guard ──
+
+export function isA2UIPayload(data: unknown): data is A2UIPayload {
     return (
         !!data &&
         typeof data === "object" &&
         "type" in data &&
-        (data as ExperientialReview).type === "experiential_intervention_review"
+        (data as A2UIPayload).type === "a2ui"
     );
-}
-
-// ── 组件 Props ──
-
-export interface MealConfirmProps {
-    time: string;
-    items: string;
-    kcal_estimate: number;
-    confidence: string;
-    tags: string[];
-}
-
-export interface StateCheckinProps {
-    energy: number;
-    hunger: number;
-    stress: number;
-    mood: number;
-    note: string;
-}
-
-export interface ProtocolPromptProps {
-    observation: string;
-    question: string;
-    option_a_label: string;
-    option_a_value: string;
-    option_b_label: string;
-    option_b_value: string;
-}
-
-export interface ExperientialReviewProps {
-    image_base64: string;
-    mime_type: string;
-    purpose: string;
-    caption: string;
 }

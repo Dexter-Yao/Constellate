@@ -1,5 +1,5 @@
-// ABOUTME: 扇出面板容器组件
-// ABOUTME: 半屏或全屏滑入面板，承载干预工具的交互卡片
+// ABOUTME: Fan-out panel container
+// ABOUTME: Half-screen or full-screen slide-in panel for A2UI component rendering
 
 "use client";
 
@@ -34,7 +34,7 @@ export function FanOutPanel({
                         onClick={onDismiss}
                         type="button"
                     >
-                        &larr; 返回对话
+                        &larr; Back to chat
                     </button>
                 </div>
                 <div className={styles.content}>{children}</div>

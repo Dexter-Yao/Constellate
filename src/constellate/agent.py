@@ -1,5 +1,5 @@
 # ABOUTME: Coach Agent 工厂函数
-# ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例（含干预工具与 Intervention Composer Subagent）
+# ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例（含 A2UI fan_out 工具与 Intervention Composer Subagent）
 
 from collections.abc import Callable
 
@@ -13,17 +13,10 @@ from deepagents.middleware.subagents import SubAgent
 from constellate.config.models import ModelRegistry
 from constellate.config.prompts import PromptRegistry
 from constellate.tools.experiential import compose_experiential_intervention
-from constellate.tools.interventions import meal_confirm, protocol_prompt, state_checkin
+from constellate.tools.fan_out import fan_out
 
-INTERVENTION_TOOLS = [meal_confirm, state_checkin, protocol_prompt]
-"""Coach 直接调用的干预工具，通过 HITL interrupt_on 实现用户交互。"""
-
-INTERACTIVE_TOOLS = {
-    "meal_confirm": True,
-    "state_checkin": True,
-    "protocol_prompt": True,
-}
-"""需要用户审阅的工具映射，传递给 interrupt_on 参数。"""
+COACH_TOOLS = [fan_out]
+"""Coach 直接调用的工具，通过 A2UI 组件组合实现动态交互。"""
 
 
 def _create_backend_factory() -> Callable:
@@ -78,8 +71,7 @@ def create_coach_agent(
         "backend": _create_backend_factory(),
         "name": "coach",
         "memory": ["/user/coach/AGENTS.md", "/user/profile/context.md"],
-        "tools": INTERVENTION_TOOLS,
-        "interrupt_on": INTERACTIVE_TOOLS,
+        "tools": COACH_TOOLS,
         "subagents": [_create_intervention_composer()],
     }
     if store is not None:

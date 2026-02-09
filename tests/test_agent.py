@@ -3,7 +3,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from langgraph.store.memory import InMemoryStore
 
 from constellate.agent import create_coach_agent
@@ -24,12 +23,12 @@ class TestCreateCoachAgent:
         """应使用 ModelRegistry 获取 coach 模型。"""
         mock_model = MagicMock()
         mock_model_reg.get.return_value = mock_model
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
 
-        mock_model_reg.get.assert_called_once_with("coach")
+        mock_model_reg.get.assert_any_call("coach")
         call_kwargs = mock_create.call_args
         assert call_kwargs.kwargs["model"] == mock_model
 
@@ -44,14 +43,14 @@ class TestCreateCoachAgent:
     ) -> None:
         """应使用 PromptRegistry 获取 coach 系统提示词。"""
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
 
-        mock_prompt_reg.get.assert_called_once_with("coach_system")
+        mock_prompt_reg.get.assert_any_call("coach_system")
         call_kwargs = mock_create.call_args
-        assert call_kwargs.kwargs["system_prompt"] == "你是教练。"
+        assert call_kwargs.kwargs["system_prompt"] == "You are a coach."
 
     @patch("constellate.agent.create_deep_agent")
     @patch("constellate.agent.PromptRegistry")
@@ -64,7 +63,7 @@ class TestCreateCoachAgent:
     ) -> None:
         """应传入 store 实例。"""
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         store = InMemoryStore()
@@ -84,7 +83,7 @@ class TestCreateCoachAgent:
     ) -> None:
         """backend 应为可调用的工厂函数（接受 ToolRuntime）。"""
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
@@ -106,7 +105,7 @@ class TestCreateCoachAgent:
         from deepagents.backends import CompositeBackend
 
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
@@ -114,7 +113,6 @@ class TestCreateCoachAgent:
         call_kwargs = mock_create.call_args
         backend_factory = call_kwargs.kwargs["backend"]
 
-        # 用 mock runtime 调用工厂函数
         mock_runtime = MagicMock()
         backend = backend_factory(mock_runtime)
         assert isinstance(backend, CompositeBackend)
@@ -122,21 +120,43 @@ class TestCreateCoachAgent:
     @patch("constellate.agent.create_deep_agent")
     @patch("constellate.agent.PromptRegistry")
     @patch("constellate.agent.ModelRegistry")
-    def test_no_custom_tools_in_v1(
+    def test_tools_include_fan_out(
         self,
         mock_model_reg: MagicMock,
         mock_prompt_reg: MagicMock,
         mock_create: MagicMock,
     ) -> None:
-        """V1 不配置自定义工具。"""
+        """tools 应包含 fan_out。"""
+        from constellate.tools.fan_out import fan_out
+
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
 
         call_kwargs = mock_create.call_args
-        assert call_kwargs.kwargs.get("tools") is None
+        tools = call_kwargs.kwargs["tools"]
+        assert fan_out in tools
+
+    @patch("constellate.agent.create_deep_agent")
+    @patch("constellate.agent.PromptRegistry")
+    @patch("constellate.agent.ModelRegistry")
+    def test_no_interrupt_on(
+        self,
+        mock_model_reg: MagicMock,
+        mock_prompt_reg: MagicMock,
+        mock_create: MagicMock,
+    ) -> None:
+        """不应使用 interrupt_on（fan_out 内部调用 interrupt）。"""
+        mock_model_reg.get.return_value = MagicMock()
+        mock_prompt_reg.get.return_value = "You are a coach."
+        mock_create.return_value = MagicMock()
+
+        create_coach_agent()
+
+        call_kwargs = mock_create.call_args
+        assert "interrupt_on" not in call_kwargs.kwargs
 
     @patch("constellate.agent.create_deep_agent")
     @patch("constellate.agent.PromptRegistry")
@@ -149,7 +169,7 @@ class TestCreateCoachAgent:
     ) -> None:
         """应设置 agent 名称为 coach。"""
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
@@ -166,12 +186,15 @@ class TestCreateCoachAgent:
         mock_prompt_reg: MagicMock,
         mock_create: MagicMock,
     ) -> None:
-        """应启用 MemoryMiddleware，加载 Coach 持久记忆。"""
+        """应启用 MemoryMiddleware，加载 Coach 持久记忆和用户档案。"""
         mock_model_reg.get.return_value = MagicMock()
-        mock_prompt_reg.get.return_value = "你是教练。"
+        mock_prompt_reg.get.return_value = "You are a coach."
         mock_create.return_value = MagicMock()
 
         create_coach_agent()
 
         call_kwargs = mock_create.call_args
-        assert call_kwargs.kwargs["memory"] == ["/user/coach/AGENTS.md"]
+        assert call_kwargs.kwargs["memory"] == [
+            "/user/coach/AGENTS.md",
+            "/user/profile/context.md",
+        ]

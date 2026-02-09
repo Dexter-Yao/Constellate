@@ -1,5 +1,5 @@
-// ABOUTME: 对话容器组件
-// ABOUTME: 整合 useStream hook 管理流式消息状态，支持双类型 interrupt（HITL + 体验式干预）
+// ABOUTME: Chat container component
+// ABOUTME: Manages streaming message state via useStream, handles unified A2UI interrupt protocol
 
 "use client";
 
@@ -8,11 +8,10 @@ import { useStream } from "@langchain/langgraph-sdk/react";
 import { MessageList } from "./MessageList";
 import { InputBar } from "./InputBar";
 import { FanOutPanel } from "./FanOutPanel";
-import { FanOutRouter } from "./fanout/FanOutRouter";
-import { ExperientialReviewCard } from "./fanout/ExperientialReviewCard";
+import { A2UIRenderer } from "./fanout/A2UIRenderer";
 import { GRAPH_NAME } from "@/lib/langgraph";
-import type { Message } from "@/lib/types";
-import { isHITLRequest, isExperientialReview } from "@/lib/types";
+import type { Message, A2UIResponse } from "@/lib/types";
+import { isA2UIPayload } from "@/lib/types";
 import styles from "./ChatContainer.module.css";
 
 interface StreamState {
@@ -57,7 +56,6 @@ export function ChatContainer() {
         [stream]
     );
 
-    // 监听流式消息更新
     useEffect(() => {
         if (stream.messages && stream.messages.length > 0) {
             const lastMessage = stream.messages[stream.messages.length - 1];
@@ -89,50 +87,28 @@ export function ChatContainer() {
         }
     }, [stream.messages]);
 
-    // ── Interrupt 检测 ──
-    // stream.interrupt 结构为 { id, value, ... }，实际 payload 在 .value 中
+    // ── A2UI Interrupt Detection ──
     const interruptData = stream.interrupt?.value;
 
-    // ── HITL resume 处理 ──
-    const handleHITLApprove = useCallback(async () => {
-        await stream.submit(null, {
-            command: { resume: { decisions: [{ type: "approve" }] } },
-        });
-    }, [stream]);
-
-    const handleHITLEdit = useCallback(
-        async (name: string, args: Record<string, unknown>) => {
+    // ── A2UI Resume Handlers ──
+    const handleA2UISubmit = useCallback(
+        async (response: A2UIResponse) => {
             await stream.submit(null, {
-                command: {
-                    resume: {
-                        decisions: [
-                            { type: "edit", edited_action: { name, args } },
-                        ],
-                    },
-                },
+                command: { resume: response },
             });
         },
         [stream]
     );
 
-    const handleHITLReject = useCallback(async () => {
+    const handleA2UIReject = useCallback(async () => {
         await stream.submit(null, {
-            command: {
-                resume: { decisions: [{ type: "reject", message: "用户关闭" }] },
-            },
+            command: { resume: { action: "reject", data: {} } },
         });
     }, [stream]);
 
-    // ── 体验式干预 resume 处理 ──
-    const handleInterventionAccept = useCallback(async () => {
+    const handleA2UISkip = useCallback(async () => {
         await stream.submit(null, {
-            command: { resume: { accepted: true } },
-        });
-    }, [stream]);
-
-    const handleInterventionDismiss = useCallback(async () => {
-        await stream.submit(null, {
-            command: { resume: { accepted: false } },
+            command: { resume: { action: "skip", data: {} } },
         });
     }, [stream]);
 
@@ -142,35 +118,17 @@ export function ChatContainer() {
         <div className={styles.container}>
             <MessageList messages={messages} isStreaming={isStreaming} />
 
-            {isHITLRequest(interruptData) && (
+            {isA2UIPayload(interruptData) && (
                 <FanOutPanel
-                    variant="half"
+                    variant={interruptData.layout}
                     visible
-                    onDismiss={handleHITLReject}
+                    onDismiss={handleA2UIReject}
                 >
-                    <FanOutRouter
-                        componentName={interruptData.action_requests[0].name}
-                        props={interruptData.action_requests[0].args}
-                        onApprove={handleHITLApprove}
-                        onEdit={handleHITLEdit}
-                        onReject={handleHITLReject}
-                    />
-                </FanOutPanel>
-            )}
-
-            {isExperientialReview(interruptData) && (
-                <FanOutPanel
-                    variant="full"
-                    visible
-                    onDismiss={handleInterventionDismiss}
-                >
-                    <ExperientialReviewCard
-                        image_base64={interruptData.image_base64}
-                        mime_type={interruptData.mime_type}
-                        purpose={interruptData.purpose}
-                        caption={interruptData.caption}
-                        onAccept={handleInterventionAccept}
-                        onDismiss={handleInterventionDismiss}
+                    <A2UIRenderer
+                        components={interruptData.components}
+                        onSubmit={handleA2UISubmit}
+                        onReject={handleA2UIReject}
+                        onSkip={handleA2UISkip}
                     />
                 </FanOutPanel>
             )}
