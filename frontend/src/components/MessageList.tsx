@@ -1,10 +1,11 @@
 // ABOUTME: 消息列表组件
-// ABOUTME: Coach 消息左对齐衬线体，用户消息右对齐无衬线体
+// ABOUTME: Coach 消息左对齐衬线体，用户消息右对齐无衬线体，支持图片消息渲染
 
 "use client";
 
 import { useRef, useEffect } from "react";
 import type { Message } from "@/lib/types";
+import { getTextContent, getImageUrls } from "@/lib/types";
 import styles from "./MessageList.module.css";
 
 interface MessageListProps {
@@ -42,6 +43,8 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
             {messages.map((message, index) => {
                 const showTimestamp = shouldShowTimestamp(message, messages[index - 1]);
                 const isLast = index === messages.length - 1;
+                const text = getTextContent(message);
+                const images = getImageUrls(message);
 
                 return (
                     <div key={message.id}>
@@ -54,8 +57,18 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
                             className={`${styles.message} ${message.role === "user" ? styles.user : styles.assistant
                                 } ${isLast && isStreaming ? styles.streaming : ""}`}
                         >
-                            {message.content}
-                            {isLast && isStreaming && <span className={styles.cursor}>▌</span>}
+                            {images.map((url, i) => (
+                                <div key={i} className={styles.messageImage}>
+                                    <img src={url} alt="" />
+                                </div>
+                            ))}
+                            {text && (
+                                <span>
+                                    {text}
+                                    {isLast && isStreaming && <span className={styles.cursor}>▌</span>}
+                                </span>
+                            )}
+                            {!text && isLast && isStreaming && <span className={styles.cursor}>▌</span>}
                         </div>
                     </div>
                 );

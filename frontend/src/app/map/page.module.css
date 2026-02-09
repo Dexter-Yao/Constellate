@@ -1,15 +1,14 @@
-/* ABOUTME: Map 页面样式 - Starpath Protocol 设计系统 */
-/* ABOUTME: 实现卡片归档视图、全屏查看、删除对话框等样式 */
+/* ABOUTME: Map page styles — Starpath Protocol design system */
+/* ABOUTME: Gallery view, full-screen overlay, and delete dialog styles */
 
-/* 页面容器 */
 .container {
   padding: var(--spacing-xl) var(--spacing-md);
   padding-bottom: calc(var(--tab-bar-height) + var(--spacing-xl));
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-/* Chapter 元数据 */
+/* Chapter metadata */
 .chapterMetadata {
   margin-bottom: var(--spacing-xl);
   text-align: center;
@@ -29,19 +28,19 @@
   color: var(--color-gray-40);
 }
 
-/* 卡片列表 */
+/* Card gallery */
 .cardsSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
 }
 
 .interventionCard {
   border: 1px solid var(--color-gray-10);
-  padding: var(--spacing-md);
   cursor: pointer;
   position: relative;
   transition: border-color 0.2s ease;
+  overflow: hidden;
 }
 
 .interventionCard:hover {
@@ -50,11 +49,11 @@
 
 .deleteButton {
   position: absolute;
-  top: var(--spacing-sm);
-  right: var(--spacing-sm);
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
   background: none;
   color: var(--color-risk-red);
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   padding: var(--spacing-xs);
   opacity: 0;
@@ -67,29 +66,28 @@
 }
 
 .cardImage {
-  width: 80%;
+  width: 100%;
   aspect-ratio: 3 / 4;
   object-fit: cover;
-  margin: 0 auto var(--spacing-md);
   display: block;
 }
 
-.cardCaption {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  line-height: 1.6;
+.cardPurpose {
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--color-obsidian);
-  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-sm) 0;
+  letter-spacing: 0.02em;
 }
 
 .cardTimestamp {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-gray-40);
-  text-align: right;
+  padding: 2px var(--spacing-sm) var(--spacing-sm);
 }
 
-/* 空状态 */
+/* Empty state */
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -109,7 +107,7 @@
   max-width: 280px;
 }
 
-/* 全屏视图 */
+/* Full-screen view */
 .fullScreenOverlay {
   position: fixed;
   top: 0;
@@ -176,7 +174,7 @@
   color: var(--color-gray-40);
 }
 
-/* 确认对话框 */
+/* Delete confirmation dialog */
 .dialogOverlay {
   position: fixed;
   top: 0;

@@ -111,7 +111,7 @@ export type Component =
 export interface A2UIPayload {
     type: "a2ui";
     components: Component[];
-    layout: "half" | "full";
+    layout: "half" | "three-quarter" | "full";
 }
 
 export interface A2UIResponse {
@@ -138,7 +138,7 @@ export interface InterventionCard {
     caption: string;           // Coach 文案
     timestamp: Date;
     purpose: "future_self" | "scene_rehearsal" | "metaphor_mirror" |
-             "reframe_contrast" | "identity_evolution";
+    "reframe_contrast" | "identity_evolution";
 }
 
 export interface ChapterMetadata {
@@ -152,3 +152,52 @@ export interface MapPageData {
     chapter: ChapterMetadata;
     cards: InterventionCard[];
 }
+
+// ── Journal Event Types ──
+
+export interface LedgerEvent {
+    ts: string;
+    type: string;
+    summary?: string;
+    evidence?: string;
+    // Meal
+    confidence?: number;
+    kcal?: number;
+    protein_g?: number;
+    carb_g?: number;
+    fat_g?: number;
+    fiber_g?: number;
+    // Exercise
+    exercise_type?: string;
+    duration_min?: number;
+    kcal_burned?: number;
+    intensity?: number | string; // number for craving (1-10), string for exercise ("light"/"moderate"/"high")
+    // Weight
+    weight_kg?: number;
+    body_fat_pct?: number;
+    // Water
+    water_ml?: number;
+    // State check-in
+    energy?: number;
+    mood?: number;
+    stress?: number;
+    // Sleep
+    hours?: number;
+    quality?: string;
+    bedtime?: string;
+    waketime?: string;
+    // Goal
+    scope?: string;
+    details?: string;
+    // Reflection
+    insight?: string;
+    trigger?: string;
+    spdca_phase?: string;
+    // Craving
+    action_taken?: string;
+    outcome?: string;
+    action?: string;
+    tags?: string[];
+    [key: string]: unknown;
+}
+

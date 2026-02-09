@@ -1,5 +1,5 @@
 // ABOUTME: Fan-out panel container
-// ABOUTME: Half-screen or full-screen slide-in panel for A2UI component rendering
+// ABOUTME: Slide-in panel for A2UI component rendering (half, three-quarter, or full screen)
 
 "use client";
 
@@ -7,14 +7,15 @@ import type { ReactNode } from "react";
 import styles from "./FanOutPanel.module.css";
 
 interface FanOutPanelProps {
-    variant: "half" | "full";
+    /** Panel height: half (50%), three-quarter (75%), or full screen. Defaults to three-quarter. */
+    variant?: "half" | "three-quarter" | "full";
     visible: boolean;
     onDismiss: () => void;
     children: ReactNode;
 }
 
 export function FanOutPanel({
-    variant,
+    variant = "three-quarter",
     visible,
     onDismiss,
     children,
@@ -42,3 +43,4 @@ export function FanOutPanel({
         </>
     );
 }
+

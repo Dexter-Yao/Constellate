@@ -1,5 +1,5 @@
 // ABOUTME: Chat container component
-// ABOUTME: Manages streaming message state via useStream, handles unified A2UI interrupt protocol
+// ABOUTME: Manages streaming message state via useStream, handles unified A2UI interrupt protocol and multimodal messages
 
 "use client";
 
@@ -10,14 +10,14 @@ import { InputBar } from "./InputBar";
 import { FanOutPanel } from "./FanOutPanel";
 import { A2UIRenderer } from "./fanout/A2UIRenderer";
 import { GRAPH_NAME } from "@/lib/langgraph";
-import type { Message, A2UIResponse } from "@/lib/types";
+import type { Message, ContentPart, A2UIResponse } from "@/lib/types";
 import { isA2UIPayload } from "@/lib/types";
 import styles from "./ChatContainer.module.css";
 
 interface StreamState {
     messages: Array<{
         type: string;
-        content: string;
+        content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
     }>;
 }
 
@@ -36,18 +36,32 @@ export function ChatContainer() {
     });
 
     const handleSend = useCallback(
-        async (content: string) => {
+        async (content: string, imageDataUrl?: string) => {
+            const msgContent: string | ContentPart[] = imageDataUrl
+                ? [
+                    { type: "image_url" as const, image_url: { url: imageDataUrl } },
+                    ...(content ? [{ type: "text" as const, text: content }] : []),
+                  ]
+                : content;
+
             const userMessage: Message = {
                 id: `user-${Date.now()}`,
                 role: "user",
-                content,
+                content: msgContent,
                 timestamp: new Date(),
             };
             setMessages((prev) => [...prev, userMessage]);
 
             try {
+                const lcContent = imageDataUrl
+                    ? [
+                        { type: "image_url", image_url: { url: imageDataUrl } },
+                        ...(content ? [{ type: "text", text: content }] : []),
+                      ]
+                    : content;
+
                 await stream.submit({
-                    messages: [{ type: "human", content }],
+                    messages: [{ type: "human", content: lcContent }],
                 });
             } catch (error) {
                 console.error("Failed to send message:", error);

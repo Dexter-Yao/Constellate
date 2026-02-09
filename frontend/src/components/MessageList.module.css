@@ -40,6 +40,19 @@
     margin-left: auto;
 }
 
+.messageImage {
+    max-width: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: var(--spacing-xs);
+}
+
+.messageImage img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .streaming .cursor {
     display: inline-block;
     animation: blink 1s step-end infinite;

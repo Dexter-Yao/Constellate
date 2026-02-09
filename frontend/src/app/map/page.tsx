@@ -1,16 +1,19 @@
-// ABOUTME: Map 页面 - Coach 卡片归档视图
-// ABOUTME: 展示 Chapter 元数据和体验式干预卡片，支持浏览和删除
+// ABOUTME: Map page — Coach card archive view
+// ABOUTME: Gallery display of chapter metadata and experiential intervention cards with browse and delete
 
 "use client";
 
 import { useState, useEffect } from "react";
+import { Client } from "@langchain/langgraph-sdk";
 import { BottomTabBar } from "@/components/BottomTabBar";
-import {  InterventionCard, ChapterMetadata } from "@/lib/types";
+import { InterventionCard, ChapterMetadata } from "@/lib/types";
 import styles from "./page.module.css";
 
-// 临时 mock 数据（后续替换为真实 API）
+const API_URL = process.env.NEXT_PUBLIC_LANGGRAPH_API_URL || "http://localhost:2024";
+const INTERVENTIONS_NAMESPACE = ["constellate", "user", "interventions"];
+
 const MOCK_CHAPTER: ChapterMetadata = {
-    identityStatement: "一个在复杂环境中仍能做出清晰选择的人",
+    identityStatement: "Someone who makes clear choices in complex environments",
     goal: "-8kg",
     currentDay: 12,
     startDate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
@@ -20,21 +23,21 @@ const MOCK_CARDS: InterventionCard[] = [
     {
         id: "card_001",
         imageUrl: "/demo-images/card_001_future_self.jpg",
-        caption: "你在一张安静的书桌前，桌上放着一本打开的笔记本。笔记本上没有记录数字，而是记录了每次选择背后的理由。这是一个能够理解自己行为模式的人——不是因为完美，而是因为清晰。",
+        caption: "You're sitting at a quiet desk with an open notebook. The notebook doesn't track numbers — it records the reasons behind each choice. This is someone who understands their own behavioral patterns — not because of perfection, but because of clarity.",
         timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         purpose: "future_self",
     },
     {
         id: "card_002",
         imageUrl: "/demo-images/card_002_scene_rehearsal.jpg",
-        caption: "晚餐聚会的场景：桌上摆满食物，但你的手边放着一杯水。你在和朋友聊天，食物只是背景。这不是克制，而是此刻你真正需要的是连接，而不是食物。",
+        caption: "A dinner gathering: the table is full of food, but there's a glass of water by your hand. You're chatting with friends — food is just the backdrop. This isn't restraint. What you truly need right now is connection, not food.",
         timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
         purpose: "scene_rehearsal",
     },
     {
         id: "card_003",
         imageUrl: "/demo-images/card_003_reframe_contrast.jpg",
-        caption: "同一个场景，两种视角：左边是「我又失控了」的视角——充满自责；右边是「这里地形复杂」的视角——充满信息。同一次应酬晚餐的摄入波动，在不同框架下有完全不同的意义。",
+        caption: "Same scene, two perspectives: on the left, the \"I lost control again\" view — full of self-blame; on the right, the \"the terrain here is complex\" view — full of information. The same dinner intake fluctuation carries entirely different meaning under different frames.",
         timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         purpose: "reframe_contrast",
     },
@@ -49,14 +52,34 @@ export default function MapPage() {
     const [cardToDelete, setCardToDelete] = useState<string | null>(null);
 
     useEffect(() => {
-        // 加载 mock 数据
         setChapter(MOCK_CHAPTER);
-        setCards(MOCK_CARDS);
-        // TODO: 替换为真实 API 调用
-        // fetchMapData().then((data) => {
-        //     setChapter(data.chapter);
-        //     setCards(data.cards);
-        // });
+
+        async function fetchCards() {
+            try {
+                const client = new Client({ apiUrl: API_URL });
+                const result = await client.store.searchItems(
+                    INTERVENTIONS_NAMESPACE,
+                    { limit: 100 }
+                );
+
+                const storeCards: InterventionCard[] = result.items.map((item) => ({
+                    id: item.key,
+                    imageUrl: (item.value as Record<string, unknown>).imageUrl as string,
+                    caption: (item.value as Record<string, unknown>).caption as string,
+                    timestamp: new Date((item.value as Record<string, unknown>).timestamp as string),
+                    purpose: (item.value as Record<string, unknown>).purpose as InterventionCard["purpose"],
+                }));
+
+                const allCards = [...MOCK_CARDS, ...storeCards].sort(
+                    (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+                );
+                setCards(allCards);
+            } catch {
+                setCards(MOCK_CARDS);
+            }
+        }
+
+        fetchCards();
     }, []);
 
     const handleCardClick = (card: InterventionCard) => {
@@ -71,7 +94,7 @@ export default function MapPage() {
 
     const handleDeleteClick = (cardId: string, event?: React.MouseEvent) => {
         if (event) {
-            event.stopPropagation(); // 防止触发卡片点击
+            event.stopPropagation();
         }
         setCardToDelete(cardId);
         setIsDeleteDialogOpen(true);
@@ -80,7 +103,7 @@ export default function MapPage() {
     const handleConfirmDelete = async () => {
         if (!cardToDelete) return;
 
-        // 乐观更新
+        // Optimistic update
         const originalCards = [...cards];
         setCards(cards.filter((c) => c.id !== cardToDelete));
         setIsDeleteDialogOpen(false);
@@ -89,13 +112,17 @@ export default function MapPage() {
         setCardToDelete(null);
 
         try {
-            // TODO: 替换为真实 API 调用
-            // await deleteCard(cardToDelete);
-            console.log("Deleted card:", cardToDelete);
-        } catch (error) {
-            // 失败回滚
+            const isMockCard = MOCK_CARDS.some((c) => c.id === cardToDelete);
+            if (!isMockCard) {
+                const client = new Client({ apiUrl: API_URL });
+                await client.store.deleteItem(
+                    INTERVENTIONS_NAMESPACE,
+                    cardToDelete
+                );
+            }
+        } catch {
             setCards(originalCards);
-            alert("删除失败，请重试");
+            alert("Delete failed, please try again");
         }
     };
 
@@ -107,18 +134,18 @@ export default function MapPage() {
     const formatTimestamp = (date: Date) => {
         const now = new Date();
         const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-        if (diffDays === 0) return "今天";
-        if (diffDays === 1) return "昨天";
-        return `${diffDays} 天前`;
+        if (diffDays === 0) return "today";
+        if (diffDays === 1) return "yesterday";
+        return `${diffDays} days ago`;
     };
 
     const getPurposeLabel = (purpose: InterventionCard["purpose"]) => {
         const labels = {
-            future_self: "未来自我对话",
-            scene_rehearsal: "场景预演",
-            metaphor_mirror: "隐喻镜像",
-            reframe_contrast: "认知重构",
-            identity_evolution: "身份演化",
+            future_self: "Future Self",
+            scene_rehearsal: "Scene Rehearsal",
+            metaphor_mirror: "Metaphor Mirror",
+            reframe_contrast: "Reframe Contrast",
+            identity_evolution: "Identity Evolution",
         };
         return labels[purpose];
     };
@@ -126,27 +153,27 @@ export default function MapPage() {
     return (
         <>
             <main className={styles.container}>
-                {/* Chapter 元数据 */}
+                {/* Chapter metadata */}
                 {chapter && (
                     <div className={styles.chapterMetadata}>
                         <p className={styles.identityStatement}>{chapter.identityStatement}</p>
                         <p className={styles.goalLabel}>
-                            目标：{chapter.goal} · 第 {chapter.currentDay} 天
+                            Goal: {chapter.goal} · Day {chapter.currentDay}
                         </p>
                     </div>
                 )}
 
-                {/* 卡片列表或空状态 */}
+                {/* Card gallery or empty state */}
                 <div className={styles.cardsSection}>
                     {cards.length === 0 ? (
                         <div className={styles.emptyState}>
                             <p className={styles.emptyMessage}>
-                                还没有教练洞察卡片
+                                No coaching insights yet
                                 <br />
                                 <br />
-                                Coach 会在关键时刻
+                                Coach will create visual
                                 <br />
-                                为你生成可视化干预
+                                interventions at key moments
                             </p>
                         </div>
                     ) : (
@@ -159,7 +186,7 @@ export default function MapPage() {
                                 <button
                                     className={styles.deleteButton}
                                     onClick={(e) => handleDeleteClick(card.id, e)}
-                                    aria-label="删除"
+                                    aria-label="Delete"
                                 >
                                     ×
                                 </button>
@@ -168,7 +195,9 @@ export default function MapPage() {
                                     alt={getPurposeLabel(card.purpose)}
                                     className={styles.cardImage}
                                 />
-                                <p className={styles.cardCaption}>{card.caption}</p>
+                                <p className={styles.cardPurpose}>
+                                    {getPurposeLabel(card.purpose)}
+                                </p>
                                 <p className={styles.cardTimestamp}>
                                     {formatTimestamp(card.timestamp)}
                                 </p>
@@ -178,18 +207,18 @@ export default function MapPage() {
                 </div>
             </main>
 
-            {/* 全屏查看模式 */}
+            {/* Full-screen view */}
             {isFullScreen && selectedCard && (
                 <div className={styles.fullScreenOverlay}>
                     <div className={styles.fullScreenHeader}>
                         <button className={styles.backButton} onClick={handleCloseFullScreen}>
-                            ← 返回
+                            ← Back
                         </button>
                         <button
                             className={styles.deleteButtonFull}
                             onClick={() => handleDeleteClick(selectedCard.id)}
                         >
-                            删除
+                            Delete
                         </button>
                     </div>
                     <div className={styles.fullScreenContent}>
@@ -207,17 +236,17 @@ export default function MapPage() {
                 </div>
             )}
 
-            {/* 删除确认对话框 */}
+            {/* Delete confirmation dialog */}
             {isDeleteDialogOpen && (
                 <div className={styles.dialogOverlay} onClick={handleCancelDelete}>
                     <div className={styles.dialogContent} onClick={(e) => e.stopPropagation()}>
-                        <h2 className={styles.dialogTitle}>确认删除这条教练洞察？</h2>
+                        <h2 className={styles.dialogTitle}>Delete this coaching insight?</h2>
                         <div className={styles.dialogButtons}>
                             <button className={styles.cancelButton} onClick={handleCancelDelete}>
-                                取消
+                                Cancel
                             </button>
                             <button className={styles.confirmButton} onClick={handleConfirmDelete}>
-                                确认删除
+                                Delete
                             </button>
                         </div>
                     </div>

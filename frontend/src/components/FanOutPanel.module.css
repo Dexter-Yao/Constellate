@@ -39,6 +39,10 @@
     height: 50vh;
 }
 
+.three-quarter {
+    height: 75vh;
+}
+
 .full {
     height: calc(100vh - var(--tab-bar-height));
 }
