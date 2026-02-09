@@ -1,9 +1,10 @@
 # ABOUTME: Coach Agent 工厂函数
 # ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例
 
+from collections.abc import Callable
+
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.store.base import BaseStore
-from langgraph.store.memory import InMemoryStore
 
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -12,7 +13,7 @@ from constellate.config.models import ModelRegistry
 from constellate.config.prompts import PromptRegistry
 
 
-def _create_backend_factory() -> callable:
+def _create_backend_factory() -> Callable:
     """创建 CompositeBackend 工厂函数。
 
     路由规则：
