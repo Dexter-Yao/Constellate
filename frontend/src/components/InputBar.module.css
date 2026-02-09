@@ -1,19 +1,26 @@
 /* ABOUTME: 输入栏样式 */
-/* ABOUTME: 底部固定，高度 48px，细线分隔 */
+/* ABOUTME: 底部固定，包含图片预览、文件选择、语音按钮与发送按钮 */
 
 .container {
     position: fixed;
     bottom: var(--tab-bar-height);
     left: 0;
     right: 0;
-    height: var(--input-bar-height);
     background: var(--color-parchment);
     border-top: 1px solid var(--color-gray-10);
+    z-index: 99;
+}
+
+.inputRow {
+    height: var(--input-bar-height);
     display: flex;
     align-items: center;
     padding: 0 var(--spacing-md);
     gap: var(--spacing-sm);
-    z-index: 99;
+}
+
+.fileInput {
+    display: none;
 }
 
 .addButton {
@@ -29,10 +36,16 @@
     justify-content: center;
     flex-shrink: 0;
     transition: opacity 0.2s ease;
+    cursor: pointer;
 }
 
 .addButton:hover {
     opacity: 0.7;
+}
+
+.addButton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 .input {
@@ -58,6 +71,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
+    border: none;
     background: transparent;
     color: var(--color-gray-40);
     font-size: 20px;
@@ -66,6 +80,7 @@
     justify-content: center;
     flex-shrink: 0;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .sendButton.active {
@@ -75,4 +90,83 @@
 
 .sendButton:disabled {
     cursor: not-allowed;
+}
+
+.micButton {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--color-gray-40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.micButton:hover {
+    color: var(--color-obsidian);
+}
+
+.micButton.recording {
+    background: var(--color-risk-red);
+    color: var(--color-parchment);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.micButton:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* 图片预览条 */
+
+.previewStrip {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-10);
+}
+
+.previewThumb {
+    position: relative;
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.previewThumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.removePreview {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: var(--color-obsidian);
+    color: var(--color-parchment);
+    font-size: 12px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.removePreview:hover {
+    opacity: 0.8;
 }
