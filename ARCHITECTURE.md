@@ -47,7 +47,7 @@ Constellate is a multi-agent system that maintains coaching continuity across se
 ┌───────────────────────────┴───────────────────────────────────────────┐
 │                        Next.js Frontend                                │
 │  ChatContainer → MessageList + InputBar                               │
-│  FanOutPanel (slide-in panel) → A2UIRenderer                          │
+│  FanOutPanel (slide-in: half / three-quarter / full) → A2UIRenderer   │
 │  BottomTabBar → Coach / Map / Journal                                 │
 └───────────────────────────────────────────────────────────────────────┘
 ```
@@ -129,7 +129,7 @@ multi_select(name: str, label: str, options: List[{label, value}], value: List[s
 {
   "type": "a2ui",
   "components": [{"kind": "text", "content": "..."}, ...],
-  "layout": "half" | "full"
+  "layout": "half" | "three-quarter" | "full"
 }
 ```
 
@@ -274,11 +274,28 @@ Coach detects intervention opportunity
 - Natural alignment with EMA research methodology
 - Supports both structured queries (patterns) and full-text search (evidence)
 
-## Scalability Considerations
+## Deployment
+
+### Docker (Recommended)
+
+The project includes Docker Compose configuration for one-command setup:
+
+```bash
+cp .env.example .env   # Add GEMINI_API_KEY
+docker compose up --build
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:2024
+```
+
+- `Dockerfile` — Python 3.12 + uv backend (LangGraph API server)
+- `frontend/Dockerfile` — Next.js multi-stage build (standalone output)
+- `docker-compose.yml` — Service orchestration with health checks
+
+### Scalability Considerations
 
 **Current (Demo):**
 - Single-user InMemoryStore
-- Local LangGraph dev server
+- Docker Compose or local LangGraph dev server
 - No authentication
 
 **Production Path:**
