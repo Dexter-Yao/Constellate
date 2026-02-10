@@ -71,12 +71,31 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for detailed system design.
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Docker (Recommended for reviewers)
+
+```bash
+# 1. Clone and configure
+git clone https://github.com/Dexter-Yao/Constellate.git
+cd Constellate
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+
+# 2. Start with Docker Compose
+docker compose up --build
+
+# 3. Access
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:2024
+```
+
+### Option B: Local Development
+
+#### Prerequisites
 - Python 3.12+
 - Node.js 18+
-- Gemini API key
+- [uv](https://github.com/astral-sh/uv) (Python package manager)
 
-### Setup
+#### Setup
 
 1. **Install dependencies**
 ```bash
@@ -86,8 +105,8 @@ cd frontend && npm install
 
 2. **Configure API keys**
 ```bash
-# Set Gemini API key
-export GEMINI_API_KEY="your-key-here"
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
 ```
 
 3. **Start backend**
