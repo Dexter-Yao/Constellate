@@ -1,0 +1,17 @@
+# ABOUTME: LLM 模型 profile 配置文件
+# ABOUTME: 定义各场景使用的模型及其参数，支持环境变量插值
+
+# 主 Coach Agent 使用 Gemini 3 Pro
+[models.coach]
+model = "google_genai:gemini-3-pro-preview"
+api_key = "${GEMINI_API_KEY}"
+
+# 摘要/压缩中间件使用轻量模型
+[models.summarizer]
+model = "google_genai:gemini-3-flash-preview"
+api_key = "${GEMINI_API_KEY}"
+
+# Intervention Composer Subagent 使用 Gemini Flash 组装干预 prompt
+[models.intervention_composer]
+model = "google_genai:gemini-3-flash-preview"
+api_key = "${GEMINI_API_KEY}"

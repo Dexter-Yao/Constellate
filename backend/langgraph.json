@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "coach": "./src/constellate/graph.py:graph"
+  },
+  "env": ".env"
+}

@@ -1,0 +1,421 @@
+{
+  "_comment": "Starpath Protocol — 组件渲染规则，供 AI 生成前端代码时直接引用",
+  "_version": "1.0.0",
+  "_updated": "2026-03-08",
+  "_token_source": "machine/design-tokens.json",
+
+  "a2ui_primitives": {
+    "_comment": "A2UI 7 个原始组件（由 Coach Agent 动态组合使用）",
+
+    "TextComponent": {
+      "description": "纯文本信息呈现，用于 Coach 在扇出面板中的文字说明",
+      "token_refs": {
+        "font": "typography.font.serif",
+        "size": "typography.size.base",
+        "color": "color.obsidian",
+        "line_height": "typography.line_height.body"
+      },
+      "css_rules": {
+        "font-family": "var(--font-serif)",
+        "font-size": "16px",
+        "color": "var(--color-obsidian)",
+        "line-height": "1.6",
+        "margin": "0"
+      },
+      "forbidden": ["bold text for emphasis", "color other than obsidian", "background color"]
+    },
+
+    "ImageComponent": {
+      "description": "教练干预图片展示，用于 Map 卡片或扇出面板图片",
+      "token_refs": {
+        "max_height": "layout.fanout_half (50vh)",
+        "ratio": "layout.map_card_image_ratio (3:4 for Map cards)"
+      },
+      "css_rules": {
+        "max-width": "100%",
+        "max-height": "50vh",
+        "object-fit": "contain",
+        "border-radius": "4px",
+        "display": "block",
+        "margin": "0 auto"
+      },
+      "map_card_variant": {
+        "width": "80%",
+        "aspect-ratio": "3 / 4",
+        "object-fit": "cover",
+        "margin": "0 auto"
+      },
+      "forbidden": ["border or frame decoration", "caption overlay directly on image"]
+    },
+
+    "SliderComponent": {
+      "description": "状态签到用滑块输入（能量、饥饿、压力、情绪，1-10 范围）",
+      "token_refs": {
+        "label_font": "typography.font.mono",
+        "label_size": "typography.size.xs",
+        "label_color": "color.obsidian-40",
+        "value_font": "typography.font.mono",
+        "value_size": "typography.size.sm",
+        "track_color": "color.obsidian-10",
+        "thumb_color": "color.obsidian"
+      },
+      "css_rules": {
+        "track": {
+          "height": "2px",
+          "background": "var(--color-obsidian-10)",
+          "-webkit-appearance": "none"
+        },
+        "thumb": {
+          "width": "16px",
+          "height": "16px",
+          "border-radius": "50%",
+          "background": "var(--color-obsidian)"
+        },
+        "label": {
+          "font-family": "var(--font-mono)",
+          "font-size": "12px",
+          "color": "var(--color-obsidian-40)",
+          "text-transform": "uppercase"
+        },
+        "value": {
+          "font-family": "var(--font-mono)",
+          "font-size": "14px",
+          "color": "var(--color-obsidian)"
+        }
+      },
+      "forbidden": ["colored track gradient", "numeric markers below track", "tick marks"]
+    },
+
+    "TextInputComponent": {
+      "description": "文字输入框，用于补充说明或自由填写",
+      "token_refs": {
+        "font": "typography.font.sans",
+        "size": "typography.size.sm",
+        "color": "color.obsidian",
+        "border": "border.separator",
+        "placeholder_color": "color.obsidian-40"
+      },
+      "css_rules": {
+        "font-family": "var(--font-sans)",
+        "font-size": "14px",
+        "color": "var(--color-obsidian)",
+        "background": "transparent",
+        "border": "1px solid var(--color-obsidian-10)",
+        "border-radius": "4px",
+        "padding": "var(--spacing-sm)",
+        "resize": "none"
+      },
+      "forbidden": ["opaque background", "focus glow/ring with color", "rounded corners > 4px"]
+    },
+
+    "NumberInputComponent": {
+      "description": "数值输入框，用于称重记录等精确数值",
+      "token_refs": {
+        "font": "typography.font.sans",
+        "size": "typography.size.sm",
+        "unit_color": "color.obsidian-40"
+      },
+      "css_rules": {
+        "font-family": "var(--font-sans)",
+        "font-size": "14px",
+        "color": "var(--color-obsidian)",
+        "background": "transparent",
+        "border": "1px solid var(--color-obsidian-10)",
+        "border-radius": "4px",
+        "padding": "var(--spacing-sm)",
+        "width": "100%"
+      },
+      "unit_label": {
+        "font-weight": "normal",
+        "color": "var(--color-obsidian-40)"
+      },
+      "forbidden": ["spinner arrows styling", "colored focus state"]
+    },
+
+    "SelectComponent": {
+      "description": "单选选项组（如标签选择、时间段选择），胶囊形按钮行内排列",
+      "token_refs": {
+        "font": "typography.font.sans",
+        "size": "typography.size.sm",
+        "idle_border": "border.separator",
+        "selected_bg": "color.obsidian",
+        "selected_color": "color.parchment",
+        "transition": "animation.transition_interaction"
+      },
+      "css_rules": {
+        "option_button": {
+          "background": "transparent",
+          "color": "var(--color-obsidian)",
+          "border": "1px solid var(--color-obsidian-10)",
+          "border-radius": "999px",
+          "padding": "8px 16px",
+          "font-family": "var(--font-sans)",
+          "font-size": "14px",
+          "transition": "all 150ms ease"
+        },
+        "option_button_hover": {
+          "border-color": "var(--color-obsidian)"
+        },
+        "option_button_selected": {
+          "background": "var(--color-obsidian)",
+          "color": "var(--color-parchment)",
+          "border-color": "var(--color-obsidian)"
+        }
+      },
+      "layout": {
+        "display": "flex",
+        "flex-wrap": "wrap",
+        "gap": "var(--spacing-xs)"
+      },
+      "forbidden": ["checkbox or radio input styling", "dropdown select element", "colored selected state"]
+    },
+
+    "MultiSelectComponent": {
+      "description": "多选选项组，与 SelectComponent 相同样式，允许多个选中",
+      "token_refs": "same as SelectComponent",
+      "note": "实现与 SelectComponent 相同，区别仅在交互逻辑（允许多个 selected 状态同时存在）",
+      "forbidden": ["checkboxes", "colored highlight"]
+    }
+  },
+
+  "ui_components": {
+    "_comment": "主要 UI 组件规则",
+
+    "ObsidianPill": {
+      "description": "主交互按钮，全圆角黑色胶囊，跨所有页签使用",
+      "token_refs": {
+        "bg": "color.obsidian",
+        "color": "color.parchment",
+        "font": "typography.font.sans",
+        "size": "typography.size.sm",
+        "radius": "border.rules.border_radius_pills"
+      },
+      "css_rules": {
+        "background": "var(--color-obsidian)",
+        "color": "var(--color-parchment)",
+        "padding": "var(--spacing-sm) var(--spacing-md)",
+        "border-radius": "999px",
+        "font-family": "var(--font-sans)",
+        "font-size": "14px",
+        "font-weight": "500",
+        "transition": "opacity var(--transition-standard)"
+      },
+      "states": {
+        "hover": { "opacity": "0.85" },
+        "disabled": { "opacity": "0.4", "cursor": "not-allowed" }
+      },
+      "outline_variant": {
+        "description": "次要操作按钮（如「修改」、「取消」）",
+        "css_rules": {
+          "background": "transparent",
+          "color": "var(--color-obsidian)",
+          "border": "1px solid var(--color-obsidian)"
+        }
+      },
+      "forbidden": ["border-radius < 999px", "colored background", "gradient"]
+    },
+
+    "BottomTabBar": {
+      "description": "底部标签栏，三页签（COACH / MAP / JOURNAL）Signal Tower 风格",
+      "token_refs": {
+        "height": "layout.tab_bar_height",
+        "font": "typography.font.mono",
+        "size": "typography.size.xs",
+        "letter_spacing": "typography.letter_spacing.tabbar",
+        "active_color": "color.obsidian",
+        "inactive_color": "color.obsidian-40",
+        "bg": "color.parchment",
+        "border_top": "border.separator"
+      },
+      "css_rules": {
+        "height": "44px",
+        "font-family": "var(--font-mono)",
+        "font-size": "12px",
+        "letter-spacing": "2px",
+        "text-transform": "uppercase",
+        "background": "var(--color-parchment)",
+        "border-top": "1px solid var(--color-obsidian-10)"
+      },
+      "active_tab": {
+        "color": "var(--color-obsidian)",
+        "border-bottom": "2px solid var(--color-obsidian)",
+        "padding-bottom": "2px"
+      },
+      "inactive_tab": {
+        "color": "var(--color-obsidian-40)"
+      },
+      "layout": {
+        "display": "grid",
+        "grid-template-columns": "1fr 1fr 1fr"
+      },
+      "forbidden": ["icons", "labels with emoji", "active tab with background fill", "dividers between tabs"]
+    },
+
+    "FanOutPanel": {
+      "description": "扇出半 UI 面板，从底部滑入覆盖对话区域",
+      "token_refs": {
+        "bg": "color.parchment (semi-transparent)",
+        "border_top": "border.separator (obsidian-20)",
+        "animation": "animation.fanout_duration"
+      },
+      "css_rules": {
+        "background": "rgba(245, 241, 235, 0.98)",
+        "border-top": "1px solid var(--color-obsidian-20)",
+        "box-shadow": "none",
+        "padding": "var(--spacing-md)"
+      },
+      "sizes": {
+        "half": "50vh",
+        "three_quarter": "75vh",
+        "full": "100vh"
+      },
+      "animation": {
+        "enter": "slide-up 300ms ease-out",
+        "exit": "slide-down 200ms ease-in"
+      },
+      "header": {
+        "font-family": "var(--font-serif)",
+        "font-size": "18px"
+      },
+      "forbidden": ["drop-shadow", "border-radius on top corners", "backdrop blur (keep clean)"]
+    },
+
+    "ChatMessage": {
+      "description": "对话消息，Coach 左对齐、用户右对齐，均无气泡",
+      "coach_message": {
+        "alignment": "left",
+        "font-family": "var(--font-serif)",
+        "font-size": "16px",
+        "color": "var(--color-obsidian)",
+        "line-height": "1.6",
+        "background": "none",
+        "padding": "0"
+      },
+      "user_message": {
+        "alignment": "right",
+        "font-family": "var(--font-sans)",
+        "font-size": "14px",
+        "color": "var(--color-obsidian)",
+        "background": "none",
+        "padding": "0"
+      },
+      "timestamp": {
+        "condition": "only when gap > 30 minutes",
+        "font-family": "var(--font-mono)",
+        "font-size": "12px",
+        "color": "var(--color-obsidian-40)",
+        "text-align": "center"
+      },
+      "message_gap": "16px",
+      "forbidden": ["bubble backgrounds", "avatar images", "read receipts", "typing indicator with animation"]
+    },
+
+    "MapCard": {
+      "description": "Map 页教练洞察卡片，承载 AI 生成图片和 Coach 文案",
+      "token_refs": {
+        "bg": "color.parchment",
+        "border": "border.card",
+        "padding": "spacing.md",
+        "card_gap": "spacing.lg",
+        "caption_font": "typography.font.serif",
+        "timestamp_font": "typography.font.mono"
+      },
+      "css_rules": {
+        "background": "rgba(245, 241, 235, 0.95)",
+        "border": "1px solid var(--color-obsidian-20)",
+        "padding": "var(--spacing-md)",
+        "border-radius": "0"
+      },
+      "image": {
+        "width": "80%",
+        "aspect-ratio": "3 / 4",
+        "margin": "0 auto var(--spacing-md)",
+        "object-fit": "cover"
+      },
+      "caption": {
+        "font-family": "var(--font-serif)",
+        "font-size": "16px",
+        "color": "var(--color-obsidian)",
+        "margin-top": "var(--spacing-md)"
+      },
+      "timestamp": {
+        "font-family": "var(--font-mono)",
+        "font-size": "12px",
+        "color": "var(--color-obsidian-40)",
+        "text-align": "right",
+        "margin-top": "var(--spacing-sm)"
+      },
+      "delete_button": {
+        "color": "var(--color-risk-red)",
+        "display": "none (show on hover)"
+      },
+      "forbidden": ["border-radius > 0 on card container", "gradient overlay on image", "like/share buttons"]
+    },
+
+    "JournalEntry": {
+      "description": "Journal 页条目，逆时间序，仅显示有数据的日子",
+      "date_header": {
+        "font-family": "var(--font-serif)",
+        "font-size": "16px",
+        "color": "var(--color-obsidian)"
+      },
+      "event_type": {
+        "font-family": "var(--font-sans)",
+        "font-size": "14px",
+        "color": "var(--color-obsidian)"
+      },
+      "data_summary": {
+        "font-family": "var(--font-mono)",
+        "font-size": "12px",
+        "color": "var(--color-obsidian-40)"
+      },
+      "tag": {
+        "format": "[标签名]",
+        "display": "inline",
+        "font-family": "var(--font-mono)",
+        "font-size": "12px"
+      },
+      "timestamp": {
+        "font-family": "var(--font-mono)",
+        "font-size": "12px",
+        "color": "var(--color-obsidian-40)"
+      },
+      "separator": {
+        "default": "1px solid var(--color-obsidian-10)",
+        "week_boundary": "2px solid var(--color-obsidian-15)"
+      },
+      "forbidden": [
+        "empty state placeholder for days with no records",
+        "red/green color coding per day",
+        "completion checkmarks"
+      ]
+    },
+
+    "ProtocolPromptCard": {
+      "description": "微干预卡片，在 Coach 检测到高压力或疲劳信号时触发",
+      "layout": "half fanout panel",
+      "style": "minimalist, no decorative elements",
+      "divider": {
+        "element": "short horizontal line (──)",
+        "color": "var(--color-obsidian-20)",
+        "margin": "var(--spacing-md) 0"
+      },
+      "body_text": {
+        "font-family": "var(--font-serif)",
+        "font-size": "16px",
+        "line-height": "1.6"
+      },
+      "question_text": {
+        "font-family": "var(--font-serif)",
+        "font-style": "normal",
+        "quotes": "true (wrap in quotation marks)"
+      },
+      "actions": {
+        "layout": "two buttons side by side",
+        "primary": "ObsidianPill outline variant (「继续对话」)",
+        "secondary": "ObsidianPill solid (「暂停一下」)"
+      },
+      "forbidden": ["warning icon", "red color", "emotional language", "exclamation marks"]
+    }
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "_comment": "Starpath Protocol — Gemini 图片生成专用 tokens，供 Image Subagent 直接引用",
+  "_version": "1.0.0",
+  "_updated": "2026-03-08",
+  "_source": "doc/05_Image_Generation.md",
+
+  "color_palette": {
+    "_comment": "在 Gemini prompt 中引用色值和对应描述语（英文）",
+    "parchment": {
+      "hex": "#F5F1EB",
+      "prompt_description": "warm parchment background (#F5F1EB) with subtle handmade paper texture"
+    },
+    "obsidian": {
+      "hex": "#1A1A1A",
+      "prompt_description": "deep obsidian black (#1A1A1A) as primary contrast element"
+    },
+    "warm_dark": {
+      "hex": "#2A2520",
+      "prompt_description": "warm dark background (#2A2520) with subtle aged paper texture"
+    },
+    "aligned_cool": {
+      "hex": "#8AACB8",
+      "prompt_description": "stars in low-saturation cool blue (#8AACB8) with soft halos"
+    },
+    "risk_red": {
+      "hex": "#8B3A3A",
+      "prompt_description": "restrained red (#8B3A3A) used only for risk markers, never for judgment"
+    },
+    "warm_gray": {
+      "hex": "#8A9A8A",
+      "prompt_description": "low-saturation cool gray-green (#8A9A8A) for aligned state"
+    }
+  },
+
+  "style_modules": {
+    "_comment": "4 个 prompt 模块，按 [SCENE] + [STYLE] + [TECHNICAL] + [NEGATIVE] 组装",
+
+    "STYLE_parchment": {
+      "theme": "default",
+      "usage": "默认主题，适用于大多数干预场景",
+      "prompt": "Style: minimalist composition inspired by Japanese ma (negative space) and Scandinavian restraint. High contrast. Warm parchment background (#F5F1EB) with subtle handmade paper texture. Deep obsidian black (#1A1A1A) as primary contrast element. Large generous white space comprising 40-60% of composition. Linear divisions, no containers or shadows. Quiet confidence, never decorative."
+    },
+
+    "STYLE_warm_dark": {
+      "theme": "map/celestial",
+      "usage": "Map 页专用，深沉内省的隐喻场景",
+      "prompt": "Style: hand-drawn celestial cartography on warm dark background (#2A2520) with subtle aged paper texture. Stars in low-saturation cool blue (#8AACB8) with soft halos. Connecting lines as organic Bézier curves, not rigid geometry. Eastern ink painting meets star atlas aesthetic. Generous dark negative space (60%+)."
+    },
+
+    "TECHNICAL": {
+      "prompt": "Medium format film aesthetic with subtle organic grain. Natural side lighting, soft and diffused. Non-photorealistic rendering."
+    },
+
+    "NEGATIVE": {
+      "prompt": "Avoid: colorful, vibrant, busy, excessive gradients, motivational graphics, medical blue, bright green/yellow/orange, rounded containers, drop shadows, glossy effects, gamification elements (badges, stars, explosions), fitness influencer photography, stock photo people, cartoon or emoji style, high saturation, 3D effects, watermarks, realistic human faces."
+    }
+  },
+
+  "templates": {
+    "_comment": "5 个教练干预图片模板",
+
+    "future_self": {
+      "id": "future_self",
+      "name": "未来自我可视化",
+      "s_pdca_phase": "Plan",
+      "trigger_conditions": [
+        "用户描述了理想状态但表达抽象或遥远",
+        "新 Chapter 启动时建立身份愿景"
+      ],
+      "style_module": "STYLE_parchment",
+      "aspect_ratios": ["3:4"],
+      "variables": [
+        "scene_description: 具体的自我领导时刻场景描述",
+        "sensory_details: 细节感官描述（灯光、物品、纹理）",
+        "identity_text: 嵌入图片的身份宣言（一句话）",
+        "time_of_day: 时段描述（early morning / evening / etc.）",
+        "emotional_tone: 情感基调（quiet clarity / grounded ease / etc.）"
+      ],
+      "text_overlay": {
+        "required": true,
+        "style": "hand-lettered, obsidian black, small and dignified",
+        "max_length": "one sentence"
+      },
+      "mood": "grounded, clear, 'this is who I'm becoming'"
+    },
+
+    "scene_rehearsal": {
+      "id": "scene_rehearsal",
+      "name": "场景预演",
+      "s_pdca_phase": "Do",
+      "trigger_conditions": [
+        "用户提到即将面对的挑战性事件",
+        "Coach 检测到历史上该类场景常导致行为波动"
+      ],
+      "style_module": "STYLE_parchment",
+      "aspect_ratios": ["4:3"],
+      "variables": [
+        "setting_description: 挑战性社交环境的场景描述",
+        "challenge_context: 挑战背景（如 social and energetic, full of temptation）",
+        "aligned_choice_detail: 对齐选择的具体细节（如用户手边的水杯、清晰的个人空间）",
+        "anchor_text: 锚定文字（一句话，底部）"
+      ],
+      "figure_style": "abstract silhouette or shadow, never a realistic person",
+      "mood": "composed, intentional, 'I lead myself even here'"
+    },
+
+    "metaphor_mirror": {
+      "id": "metaphor_mirror",
+      "name": "隐喻图像化",
+      "s_pdca_phase": "Check",
+      "trigger_conditions": [
+        "用户使用隐喻语言描述行为体验",
+        "Coach 在模式分析中构建了有力的隐喻解读"
+      ],
+      "style_module": "STYLE_parchment or STYLE_warm_dark",
+      "style_selection_rule": "light metaphors → parchment, heavy/deep metaphors → warm_dark",
+      "aspect_ratios": ["9:16"],
+      "variables": [
+        "metaphor_scene: 内心体验的抽象自然/物理景观描述",
+        "transformation_element: 转化元素（如石头、桥梁、光线）",
+        "emotional_undercurrent: 情感暗流（recognition without alarm / honest complexity）",
+        "insight_text: 洞察文字（一句话，观察而非建议）"
+      ],
+      "rendering_style": "dreamlike but not surreal, loose organic brushwork (sumi-e), large untouched background (50%+)",
+      "mood": "reflective, honest, 'this is what it feels like — and that's information'"
+    },
+
+    "reframe_contrast": {
+      "id": "reframe_contrast",
+      "name": "认知重构",
+      "s_pdca_phase": "Act",
+      "trigger_conditions": [
+        "用户陷入固定视角看待行为偏离（自责、放弃心态）",
+        "Coach 检测到重复的自我批评模式"
+      ],
+      "style_module": "STYLE_parchment",
+      "aspect_ratios": ["16:9"],
+      "variables": [
+        "situation_description: 同一场景的描述（两个面板共用的基础情境）",
+        "old_frame_visual: 左面板——评判视角的视觉描述（紧绷、压缩）",
+        "new_frame_visual: 右面板——信息视角的视觉描述（呼吸、开放）",
+        "reframe_text: 重构文字（一句话，两面板下方居中）"
+      ],
+      "composition": {
+        "layout": "diptych (two panels)",
+        "left_panel": "smaller, slightly faded, cooler tighter marks",
+        "right_panel": "larger, clearer, warmer expansive strokes, one subtle warm accent",
+        "divider": "thin vertical obsidian line between panels"
+      },
+      "mood": "perspective shift, 'the same facts tell different stories'"
+    },
+
+    "identity_evolution": {
+      "id": "identity_evolution",
+      "name": "身份演化",
+      "s_pdca_phase": "Act",
+      "trigger_conditions": [
+        "Chapter 完成或月度回顾",
+        "Coach 检测到显著的行为模式正向转变"
+      ],
+      "style_module": "STYLE_parchment",
+      "aspect_ratios": ["3:4"],
+      "variables": [
+        "form_count: 剪影数量（通常 3，代表演化的时间跨度）",
+        "evolution_description: 演化过程描述（从模糊到清晰，从不确定到有根基）",
+        "continuity_note: 连续性注释（如 the core brushstroke is unchanged）"
+      ],
+      "composition": {
+        "forms": "overlapping silhouettes, left to right, each more defined",
+        "core_element": "continuous brushstroke connecting all forms",
+        "connecting_lines": "delicate lines suggesting continuity between forms",
+        "trajectory": "inward (becoming more oneself), not upward"
+      },
+      "no_text": true,
+      "no_metrics": true,
+      "mood": "contemplative, dignified, 'becoming' rather than 'achieving'"
+    }
+  },
+
+  "global_constraints": {
+    "_comment": "所有图片生成的全局约束，无论模板类型",
+    "negative_space_minimum": "40%",
+    "no_realistic_faces": true,
+    "figure_rendering": "abstract silhouette, shadow, or environmental detail only",
+    "text_overlay_rules": {
+      "max_text": "one sentence",
+      "style": "hand-lettered appearance",
+      "color": "obsidian black (#1A1A1A)",
+      "size": "small and dignified",
+      "placement": "subtle, as if written on the scene"
+    },
+    "non_photorealistic": true,
+    "preferred_styles": [
+      "Japanese sumi-e (ink wash)",
+      "contemporary watercolor illustration",
+      "editorial illustration with selective ink wash",
+      "contemplative documentary photography meets watercolor"
+    ],
+    "forbidden_styles": [
+      "fitness influencer photography",
+      "stock photos with people",
+      "cartoon or anime style",
+      "3D renders",
+      "digital precision / clean vector",
+      "motivational poster aesthetic",
+      "medical illustration"
+    ],
+    "ethical_constraints": {
+      "no_body_comparison": true,
+      "no_idealized_physique": true,
+      "no_weight_scale_imagery": true,
+      "no_before_after": true,
+      "focus_on": ["behavioral capability", "situational mastery", "identity evolution"]
+    }
+  },
+
+  "prompt_engineering_notes": [
+    "用段落叙述而非关键词列表——Gemini 在段落式描述下效果更好",
+    "写入具体色号（#F5F1EB, #2A2520, #8AACB8）锁定调色板",
+    "显式要求留白——'generous negative space'、'60%+ white space'",
+    "负面 prompt 用 'Avoid: X, Y, Z' 格式，不用 'No X'",
+    "将用户原话中的隐喻直接嵌入 prompt，比转述更有效",
+    "避免真人面孔——使用剪影、抽象形态、环境细节",
+    "文本嵌入要克制——一句话，肯定句或洞察",
+    "情绪色温匹配——温暖/安全用羊皮纸底，深沉/内省用暖黑底"
+  ]
+}
