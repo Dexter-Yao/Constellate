@@ -31,7 +31,8 @@ final class HealthKitManager {
         guard isAvailable else { return }
         let types: Set<HKObjectType> = [HKCategoryType(.sleepAnalysis)]
         try await store.requestAuthorization(toShare: [], read: types)
-        isSleepAuthorized = store.authorizationStatus(for: HKCategoryType(.sleepAnalysis)) != .notDetermined
+        // Apple 不暴露只读权限状态，请求完成即标记为已请求
+        isSleepAuthorized = true
     }
 
     func requestStepsAccess() async throws {
@@ -41,7 +42,8 @@ final class HealthKitManager {
             HKQuantityType(.activeEnergyBurned),
         ]
         try await store.requestAuthorization(toShare: [], read: types)
-        isStepsAuthorized = store.authorizationStatus(for: HKQuantityType(.stepCount)) != .notDetermined
+        // Apple 不暴露只读权限状态，请求完成即标记为已请求
+        isStepsAuthorized = true
     }
 
     // MARK: - Read

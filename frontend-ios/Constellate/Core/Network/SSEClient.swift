@@ -2,6 +2,7 @@
 // ABOUTME: 基于 URLSession AsyncBytes，无第三方依赖
 
 import Foundation
+import os.log
 
 // MARK: - SSE Event Types
 
@@ -126,11 +127,19 @@ struct SSEClient: Sendable {
         return .message(role: type == "ai" ? "assistant" : "user", content: content)
     }
 
+    private static let logger = Logger(subsystem: "constellate", category: "SSEClient")
+
     private static func parseValuesForInterrupt(_ data: Data) -> SSEEvent? {
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let interrupt = json["interrupt"] as? [String: Any],
-              let value = interrupt["value"] as? [[String: Any]],
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            logger.debug("values event: JSON 解析失败")
+            return nil
+        }
+        guard let interrupt = json["interrupt"] as? [String: Any] else {
+            return nil  // values 事件不含 interrupt 是正常情况
+        }
+        guard let value = interrupt["value"] as? [[String: Any]],
               let first = value.first else {
+            logger.warning("interrupt value 结构不符预期: \(String(describing: interrupt))")
             return nil
         }
 
@@ -139,6 +148,7 @@ struct SSEClient: Sendable {
                 return .interrupt(payloadData)
             }
         }
+        logger.debug("interrupt 非 a2ui 类型，已忽略")
         return nil
     }
 }

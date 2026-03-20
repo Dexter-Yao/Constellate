@@ -190,6 +190,12 @@ struct A2UIResponse: Codable, Sendable {
         self.action = action
         self.data = data.mapValues { AnyCodable($0) }
     }
+
+    /// 以 String 值查询 data 字段
+    func stringValue(forKey key: String) -> String? {
+        guard case .string(let v) = data[key] else { return nil }
+        return v
+    }
 }
 
 enum A2UIAction: String, Codable, Sendable {
@@ -200,32 +206,47 @@ enum A2UIAction: String, Codable, Sendable {
 
 // MARK: - AnyCodable Helper
 
-struct AnyCodable: Codable, Sendable {
-    let value: Any
+enum AnyCodable: Codable, Sendable {
+    case bool(Bool)
+    case int(Int)
+    case double(Double)
+    case string(String)
+    case strings([String])
 
     init(_ value: Any) {
-        self.value = value
+        switch value {
+        case let v as Bool: self = .bool(v)
+        case let v as Int: self = .int(v)
+        case let v as Double: self = .double(v)
+        case let v as String: self = .string(v)
+        case let v as [String]: self = .strings(v)
+        default: self = .string("\(value)")
+        }
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let int = try? container.decode(Int.self) { value = int }
-        else if let double = try? container.decode(Double.self) { value = double }
-        else if let string = try? container.decode(String.self) { value = string }
-        else if let bool = try? container.decode(Bool.self) { value = bool }
-        else if let array = try? container.decode([String].self) { value = array }
-        else { value = "" }
+        if let bool = try? container.decode(Bool.self) { self = .bool(bool) }
+        else if let int = try? container.decode(Int.self) { self = .int(int) }
+        else if let double = try? container.decode(Double.self) { self = .double(double) }
+        else if let string = try? container.decode(String.self) { self = .string(string) }
+        else if let array = try? container.decode([String].self) { self = .strings(array) }
+        else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "AnyCodable: unsupported type"
+            )
+        }
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        switch value {
-        case let v as Int: try container.encode(v)
-        case let v as Double: try container.encode(v)
-        case let v as String: try container.encode(v)
-        case let v as Bool: try container.encode(v)
-        case let v as [String]: try container.encode(v)
-        default: try container.encode("\(value)")
+        switch self {
+        case .bool(let v): try container.encode(v)
+        case .int(let v): try container.encode(v)
+        case .double(let v): try container.encode(v)
+        case .string(let v): try container.encode(v)
+        case .strings(let v): try container.encode(v)
         }
     }
 }

@@ -1,13 +1,13 @@
 # Constellate Architecture
 
-> System design for a multi-modal coaching agent built with Gemini 3
+> 基于多模态教练 Agent 的系统设计，使用 Gemini 3 构建
 
 ## 相关文档
 
-- `/doc/01_Product_Foundation.md` — 产品理论与目标定位（理论基础、Guardrail、数据结构）
-- `/doc/02_Design_System.md` — 设计系统规范（Starpath Protocol）
-- `/doc/04_UI_Specification.md` — UI线框与交互细节
-- `/doc/05_Image_Generation.md` — 教练干预技术指南
+- `/docs/01_Product_Foundation.md` — 产品理论与目标定位（理论基础、Guardrail、数据结构）
+- `/docs/02_Design_System.md` — 设计系统规范（Starpath Protocol）
+- `/docs/04_UI_Specification.md` — UI线框与交互细节
+- `/docs/05_Image_Generation.md` — 教练干预技术指南
 
 ## Overview
 
@@ -50,12 +50,12 @@ Constellate is a multi-agent system that maintains coaching continuity across se
 │                                                                       │
 │  SummarizationMiddleware (85% context triggers compression)          │
 └───────────────────────────┬───────────────────────────────────────────┘
-                            │ useStream + interrupt
+                            │ SSE stream + interrupt
 ┌───────────────────────────┴───────────────────────────────────────────┐
-│                        Next.js Frontend                                │
-│  ChatContainer → MessageList + InputBar                               │
+│                  iOS Native Client (SwiftUI + SwiftData)               │
+│  CoachView → MessageList + InputBar                                   │
 │  FanOutPanel (slide-in: half / three-quarter / full) → A2UIRenderer   │
-│  BottomTabBar → Coach / Map / Journal                                 │
+│  TabView → Coach / Map / Journal                                      │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,9 +102,9 @@ agent = create_deep_agent(
 - Calls Gemini 3 Image API (`gemini-3-pro-preview`)
 - Returns A2UI payload (image + caption + feedback select component)
 
-**Intervention Types:** 详见`/doc/01_Product_Foundation.md`附录A.4节（体验式教练干预）
+**Intervention Types:** 详见`/docs/01_Product_Foundation.md`附录A.4节（体验式教练干预）
 
-**Ethical Constraints:** 详见`/doc/01_Product_Foundation.md`第六节（Guardrail）
+**Ethical Constraints:** 详见`/docs/01_Product_Foundation.md`第六节（Guardrail）
 
 **Caching:** Module-level cache prevents duplicate API calls on interrupt resume
 
@@ -112,7 +112,7 @@ agent = create_deep_agent(
 
 **Concept:** Composable UI primitives for dynamic agent-driven interactions
 
-**7 Component Primitives:** text, image, slider, text_input, number_input, select, multi_select。详见代码库`src/constellate/a2ui.py`
+**8 Component Primitives:** text, image, slider, text_input, number_input, select, multi_select, protocol_prompt。详见代码库`src/constellate/a2ui.py`
 
 **Unified Interrupt Protocol:**
 ```json
@@ -134,11 +134,11 @@ agent = create_deep_agent(
 **Implementation:**
 - Backend: `src/constellate/a2ui.py` (Pydantic discriminated union on `kind`)
 - Tool: `src/constellate/tools/fan_out.py`
-- Frontend: `frontend/src/components/fanout/A2UIRenderer.tsx`
+- iOS: `frontend-ios/Constellate/Features/Coach/A2UI/A2UIRenderer.swift`
 
 **Usage Pattern:**
 1. Coach calls `fan_out(components, layout)`
-2. Payload validated → `interrupt()` → frontend FanOutPanel
+2. Payload validated → `interrupt()` → iOS FanOutPanel
 3. User interacts → `resume(A2UIResponse)`
 4. Tool returns result → Coach continues
 
@@ -161,7 +161,7 @@ agent = create_deep_agent(
     └── AGENTS.md               # Coach persistent memory
 ```
 
-**Event Schema:** Coach-defined, not enforced by backend. Schema设计详见`/doc/01_Product_Foundation.md`第五节（数据结构）
+**Event Schema:** Coach-defined, not enforced by backend. Schema设计详见`/docs/01_Product_Foundation.md`第五节（数据结构）
 
 **Writing Strategy:**
 - Async event recording (user silence ≥5 min or session end)
@@ -208,11 +208,11 @@ User message
     → Coach Agent
       → Process with system prompt + memory
       → (Optional) Call fan_out for UI interaction
-        → interrupt() → Frontend FanOutPanel
+        → interrupt() → iOS FanOutPanel
           → User input → resume()
       → (Optional) Write to behavior ledger
       → Response message
-    → Frontend MessageList
+    → iOS MessageList
 ```
 
 ### Experiential Intervention Flow
@@ -225,7 +225,7 @@ Coach detects intervention opportunity
         → Generate image via Gemini 3 Pro Image API
         → Assemble A2UI payload (image + caption + select)
         → interrupt() propagates: tool → subagent → coach → client
-          → Frontend renders full-screen A2UI panel
+          → iOS renders full-screen A2UI panel
             → User: accept / dismiss / mark unhelpful
               → resume() with feedback
         → Tool returns result
@@ -253,8 +253,8 @@ Coach detects intervention opportunity
 ### Why A2UI over fixed forms?
 - Coaching conversations are inherently unpredictable
 - Same primitives serve multiple purposes (data collection, micro-interventions, experiential delivery)
-- Single interrupt protocol simplifies frontend rendering
-- Composability enables unlimited interaction patterns from 7 base components
+- Single interrupt protocol simplifies client rendering
+- Composability enables unlimited interaction patterns from 8 base components
 
 ### Why event-sourced ledger over normalized database?
 - Preserves full behavior context (evidence quotes, confidence levels, tags)
@@ -264,20 +264,24 @@ Coach detects intervention opportunity
 
 ## Deployment
 
-### Docker (Recommended)
+### Backend
 
-The project includes Docker Compose configuration for one-command setup:
-
+**Docker (开发/演示):**
 ```bash
 cp .env.example .env   # Add GEMINI_API_KEY
 docker compose up --build
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:2024
+# Backend: http://localhost:2024
 ```
 
 - `Dockerfile` — Python 3.12 + uv backend (LangGraph API server)
-- `frontend/Dockerfile` — Next.js multi-stage build (standalone output)
-- `docker-compose.yml` — Service orchestration with health checks
+- `docker-compose.yml` — Backend service orchestration with health checks
+
+**Production:** LangGraph Cloud for agent runtime
+
+### iOS Client
+
+- Xcode 构建，通过 App Store / TestFlight 分发
+- 通过 SSE 与 LangGraph 后端通信
 
 ### Scalability Considerations
 
@@ -290,14 +294,13 @@ docker compose up --build
 - Custom Supabase backend implementing BackendProtocol
 - File paths → JSONB columns with GIN indexing
 - Row-Level Security for multi-user isolation
-- Vercel deployment for frontend
 - LangGraph Cloud for agent runtime
 
 **No agent code changes required** — backend is pluggable interface
 
 ## Security & Ethics
 
-**Content Safety:** 详见`/doc/01_Product_Foundation.md`第六节（Guardrail）
+**Content Safety:** 详见`/docs/01_Product_Foundation.md`第六节（Guardrail）
 
 **Data Privacy:**
 - Behavior ledger is user-owned (can export/delete)
@@ -352,3 +355,4 @@ docker compose up --build
 |------|----------|
 | 2026-02-12 | 初始创建：系统架构总览、核心组件、数据流程、技术选型、部署指南 |
 | 2026-02-12 | 激进清理：删除冗余理论/伦理内容（约60-80行），替换为对01_Product_Foundation.md的引用；新增文档导航表与Evergreen说明；控制篇幅至2000字左右 |
+| 2026-03-20 | 前端架构更新为 iOS 原生客户端（SwiftUI + SwiftData）；路径引用 doc/ → docs/；A2UI 组件数量 7 → 8 |

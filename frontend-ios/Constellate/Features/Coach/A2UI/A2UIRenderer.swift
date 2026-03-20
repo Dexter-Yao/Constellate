@@ -49,11 +49,13 @@ struct A2UIRenderer: View {
             if data.src.hasPrefix("data:") {
                 if let imageData = decodeBase64Image(data.src),
                    let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: UIScreen.main.bounds.height * 0.5)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    GeometryReader { geometry in
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: geometry.size.height * 0.6)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
                 }
             }
 
@@ -61,8 +63,8 @@ struct A2UIRenderer: View {
             ProtocolPromptCard(
                 observation: data.observation,
                 question: data.question,
-                onContinue: { onSkip() },
-                onPause: { onSubmit([:]) }
+                onContinue: { onSubmit([:]) },
+                onPause: { onSkip() }
             )
 
         case .slider(let data):

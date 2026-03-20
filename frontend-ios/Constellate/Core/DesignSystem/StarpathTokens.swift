@@ -22,6 +22,9 @@ enum StarpathTokens {
     /// 对齐状态指示，低饱和冷绿灰 (#8A9A8A)
     static let aligned = Color(red: 0.541, green: 0.604, blue: 0.541)
 
+    /// 对齐状态冷蓝变体，图片生成与 Map 卡片状态指示 (#8AACB8)
+    static let alignedCool = Color(red: 0.541, green: 0.675, blue: 0.722)
+
     // MARK: - 透明度变体
 
     /// 细分割线、输入框边框、滑块轨道
@@ -76,6 +79,7 @@ enum StarpathTokens {
 
     static let lineHeightBody: CGFloat = 1.6
     static let lineHeightHeading: CGFloat = 1.3
+    static let lineHeightData: CGFloat = 1.0
 
     // MARK: - 布局
 

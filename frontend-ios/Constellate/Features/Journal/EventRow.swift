@@ -37,7 +37,7 @@ struct EventRow: View {
             // 证据引用
             if !event.evidence.isEmpty {
                 Text("「\(event.evidence)」")
-                    .starpathSerif()
+                    .starpathSans()
                     .foregroundStyle(StarpathTokens.obsidian40)
             }
 
@@ -55,16 +55,15 @@ struct EventRow: View {
         .padding(.vertical, StarpathTokens.spacingSM)
     }
 
-    private var eventType: EventType? {
-        EventType(rawValue: event.type)
+    private var eventType: EventType {
+        event.type
     }
 
     private var eventTypeLabel: String {
-        eventType?.label ?? event.type
+        eventType.label
     }
 
     private func buildDataSummary() -> String? {
-        guard let eventType else { return nil }
         var parts: [String] = []
         switch eventType {
         case .meal:

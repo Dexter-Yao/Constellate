@@ -1,5 +1,5 @@
 # ABOUTME: A2UI 通用交互工具
-# ABOUTME: 通过组合 7 种 UI 原语构建动态界面，经 interrupt() 采集用户响应
+# ABOUTME: 通过组合 8 种 UI 原语构建动态界面，经 interrupt() 采集用户响应
 
 from typing import Any, Literal
 
@@ -16,8 +16,8 @@ def fan_out(
 ) -> str:
     """Present an interactive UI to the user and collect their response.
 
-    Compose dynamic interfaces from 7 UI primitives: text, image, slider,
-    text_input, number_input, select, multi_select.
+    Compose dynamic interfaces from 8 UI primitives: text, image, protocol_prompt,
+    slider, text_input, number_input, select, multi_select.
 
     Args:
         components: List of component dicts, each with a "kind" field.

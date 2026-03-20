@@ -1,7 +1,8 @@
 # ABOUTME: 体验式干预工具
-# ABOUTME: 调用 Gemini 3 Pro Image API 生成干预内容，通过 A2UI interrupt() 供用户审阅，接受后持久化到 Store
+# ABOUTME: interrupt() 暂停执行等待用户审阅，接受后持久化到 Store
 
 import base64
+import hashlib
 import os
 import uuid
 from datetime import datetime, timezone
@@ -21,7 +22,7 @@ from constellate.a2ui import (
     TextComponent,
 )
 
-_intervention_cache: dict[int, tuple[str, str]] = {}
+_intervention_cache: dict[str, tuple[str, str]] = {}
 """模块级缓存，避免 resume 重执行时重复调用 Gemini API。
 
 LangGraph 在 interrupt() 后 resume 时会从 node 起重新执行。
@@ -86,7 +87,7 @@ def compose_experiential_intervention(
         purpose: Intervention type identifier, e.g. "future_self", "scene_rehearsal".
         caption: Coach-voice narrative conveying the intervention intent.
     """
-    cache_key = hash(prompt)
+    cache_key = hashlib.sha256(prompt.encode()).hexdigest()
 
     if cache_key not in _intervention_cache:
         from google import genai

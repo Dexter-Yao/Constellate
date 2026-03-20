@@ -3,7 +3,7 @@
 
 import Foundation
 
-final class LangGraphAPI {
+final class LangGraphAPI: @unchecked Sendable {
     private let sseClient = SSEClient()
 
     // MARK: - Thread Management
@@ -84,7 +84,7 @@ final class LangGraphAPI {
                     ["role": "user", "content": content]
                 ]
             ],
-            "stream_mode": ["messages"]
+            "stream_mode": ["messages", "values"]
         ]
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -112,7 +112,7 @@ final class LangGraphAPI {
         let body: [String: Any] = [
             "assistant_id": APIConfiguration.assistantID,
             "command": ["resume": response],
-            "stream_mode": ["messages"]
+            "stream_mode": ["messages", "values"]
         ]
 
         request.httpBody = try JSONSerialization.data(withJSONObject: body)

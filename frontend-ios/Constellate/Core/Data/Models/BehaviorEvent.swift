@@ -30,7 +30,7 @@ enum EventType: String, Codable {
 final class BehaviorEvent {
     var id: String
     var timestamp: Date
-    var type: String
+    var type: EventType
     var evidence: String
     var summary: String?
     var tags: [String]
@@ -70,7 +70,7 @@ final class BehaviorEvent {
     init(
         id: String = UUID().uuidString,
         timestamp: Date = .now,
-        type: String,
+        type: EventType,
         evidence: String,
         summary: String? = nil,
         tags: [String] = []

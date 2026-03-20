@@ -28,18 +28,23 @@ private struct CardThumbnail: View {
     var body: some View {
         VStack(alignment: .leading, spacing: StarpathTokens.spacingSM) {
             // 图片
-            if let imageData = card.imageData, let uiImage = UIImage(data: imageData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                    .clipped()
-            } else {
-                Rectangle()
-                    .fill(StarpathTokens.obsidian10)
-                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            GeometryReader { geometry in
+                Group {
+                    if let imageData = card.imageData, let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width * 0.8)
+                            .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(StarpathTokens.obsidian10)
+                            .frame(width: geometry.size.width * 0.8)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
 
             // 文案
             Text(card.caption)

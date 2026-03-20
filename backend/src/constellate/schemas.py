@@ -156,13 +156,5 @@ NonStructuredEventType = Union[
 ]
 """非结构化事件，用于上下文理解和定性分析。"""
 
-EventType = Union[
-    MealEvent,
-    ExerciseEvent,
-    WeighInEvent,
-    WaterIntakeEvent,
-    StateCheckinEvent,
-    GoalUpdateEvent,
-    AppActionEvent,
-]
+EventType = Union[StructuredEventType, NonStructuredEventType]
 """所有事件类型的联合。"""

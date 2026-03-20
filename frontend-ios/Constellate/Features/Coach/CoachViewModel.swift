@@ -1,10 +1,11 @@
 // ABOUTME: Coach 对话页 ViewModel，管理流式消息和 A2UI 中断
-// ABOUTME: 映射 Web 版 ChatContainer.tsx 的核心逻辑
+// ABOUTME: 管理 SSE 流生命周期，确保 UI 状态与后端中断协议一致
 
 import Foundation
 import SwiftData
 import Observation
 
+@MainActor
 @Observable
 final class CoachViewModel {
     var messages: [ChatMessage] = []
@@ -72,7 +73,8 @@ final class CoachViewModel {
     // MARK: - A2UI Interrupt Handlers
 
     func submitA2UIResponse(_ data: [String: Any]) {
-        guard activeInterrupt != nil else { return }
+        guard let payload = activeInterrupt else { return }
+        persistInterventionCardIfAccepted(payload: payload, data: data)
         activeInterrupt = nil
         resumeWithAction("submit", data: data)
     }
@@ -166,6 +168,42 @@ final class CoachViewModel {
             self.modelContext?.insert(assistantMessage)
             self.isStreaming = false
         }
+    }
+
+    // MARK: - Intervention Card Persistence
+
+    /// 用户 accept 体验式干预时，从 payload 提取图片和文案，持久化到 SwiftData
+    private func persistInterventionCardIfAccepted(payload: A2UIPayload, data: [String: Any]) {
+        guard let decision = data["decision"] as? String, decision == "accept" else { return }
+
+        var imageData: Data?
+        var caption = ""
+        var purpose = ""
+
+        for component in payload.components {
+            switch component {
+            case .image(let img):
+                if img.src.hasPrefix("data:"),
+                   let commaIndex = img.src.firstIndex(of: ",") {
+                    let base64 = String(img.src[img.src.index(after: commaIndex)...])
+                    imageData = Data(base64Encoded: base64)
+                }
+                purpose = img.alt ?? ""
+            case .text(let txt):
+                caption = txt.content
+            default:
+                break
+            }
+        }
+
+        guard imageData != nil || !caption.isEmpty else { return }
+
+        let card = InterventionCard(
+            imageData: imageData,
+            caption: caption,
+            purpose: purpose
+        )
+        modelContext?.insert(card)
     }
 
     // MARK: - Cancel

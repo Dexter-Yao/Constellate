@@ -1,28 +1,65 @@
-// ABOUTME: 应用根视图，TabView 承载三个页签
-// ABOUTME: Coach / Map / Journal 全部就位
+// ABOUTME: 应用根视图，自定义 TabBar 承载三个页签
+// ABOUTME: Starpath Protocol 规范：mono 字体、无图标、2px bottom border
 
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var selectedTab = 0
+
+    private let tabs = ["COACH", "MAP", "JOURNAL"]
+
     var body: some View {
-        TabView {
-            CoachView()
-                .tabItem {
-                    Label("COACH", systemImage: "message")
+        VStack(spacing: 0) {
+            Group {
+                switch selectedTab {
+                case 0: CoachView()
+                case 1: MapView()
+                case 2: JournalView()
+                default: CoachView()
                 }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            MapView()
-                .tabItem {
-                    Label("MAP", systemImage: "map")
-                }
-
-            JournalView()
-                .tabItem {
-                    Label("JOURNAL", systemImage: "book")
-                }
+            StarpathTabBar(tabs: tabs, selectedIndex: $selectedTab)
         }
-        .tint(StarpathTokens.obsidian)
+    }
+}
+
+// MARK: - Starpath TabBar
+
+private struct StarpathTabBar: View {
+    let tabs: [String]
+    @Binding var selectedIndex: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(tabs.enumerated()), id: \.offset) { index, label in
+                Button {
+                    selectedIndex = index
+                } label: {
+                    VStack(spacing: StarpathTokens.spacingXS) {
+                        Text(label)
+                            .font(.system(size: StarpathTokens.fontSizeXS, design: .monospaced))
+                            .tracking(2)
+                            .foregroundStyle(
+                                index == selectedIndex
+                                    ? StarpathTokens.obsidian
+                                    : StarpathTokens.obsidian40
+                            )
+
+                        Rectangle()
+                            .fill(index == selectedIndex ? StarpathTokens.obsidian : .clear)
+                            .frame(height: 2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, StarpathTokens.spacingSM)
+                    .padding(.bottom, StarpathTokens.spacingXS)
+                }
+            }
+        }
+        .padding(.horizontal, StarpathTokens.spacingMD)
+        .background(StarpathTokens.parchment)
     }
 }
 
