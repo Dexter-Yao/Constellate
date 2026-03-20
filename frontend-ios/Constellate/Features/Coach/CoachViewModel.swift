@@ -4,6 +4,9 @@
 import Foundation
 import SwiftData
 import Observation
+import os
+
+private let logger = Logger(subsystem: "com.constellate", category: "CoachViewModel")
 
 @MainActor
 @Observable
@@ -37,13 +40,13 @@ final class CoachViewModel {
                 let threadID = try await api.ensureThread()
 
                 let userMessage = ChatMessage(
-                    role: "user",
+                    role: .user,
                     textContent: text,
                     imageData: imageData,
                     threadID: threadID
                 )
                 let assistantMessage = ChatMessage(
-                    role: "assistant",
+                    role: .assistant,
                     textContent: "",
                     threadID: threadID
                 )
@@ -95,7 +98,7 @@ final class CoachViewModel {
         guard let threadID = APIConfiguration.threadID else { return }
 
         let assistantMessage = ChatMessage(
-            role: "assistant",
+            role: .assistant,
             textContent: "",
             threadID: threadID
         )
@@ -176,19 +179,17 @@ final class CoachViewModel {
     private func persistInterventionCardIfAccepted(payload: A2UIPayload, data: [String: Any]) {
         guard let decision = data["decision"] as? String, decision == "accept" else { return }
 
-        var imageData: Data?
+        var cardImageData: Data?
         var caption = ""
         var purpose = ""
 
         for component in payload.components {
             switch component {
             case .image(let img):
-                if img.src.hasPrefix("data:"),
-                   let commaIndex = img.src.firstIndex(of: ",") {
-                    let base64 = String(img.src[img.src.index(after: commaIndex)...])
-                    imageData = Data(base64Encoded: base64)
+                if img.src.hasPrefix("data:") {
+                    cardImageData = Data.fromDataURL(img.src)
                 }
-                purpose = img.alt ?? ""
+                purpose = img.alt
             case .text(let txt):
                 caption = txt.content
             default:
@@ -196,32 +197,44 @@ final class CoachViewModel {
             }
         }
 
-        guard imageData != nil || !caption.isEmpty else { return }
+        guard cardImageData != nil || !caption.isEmpty else { return }
 
         let card = InterventionCard(
-            imageData: imageData,
+            imageData: cardImageData,
             caption: caption,
             purpose: purpose
         )
         modelContext?.insert(card)
     }
 
-    // MARK: - Cancel
-
-    func cancelStream() {
-        streamTask?.cancel()
-        isStreaming = false
-    }
-
     // MARK: - Load from SwiftData
 
     private func loadMessages() {
         guard let modelContext else { return }
-        let descriptor = FetchDescriptor<ChatMessage>(
-            sortBy: [SortDescriptor(\.timestamp)]
+        let currentThreadID = APIConfiguration.threadID
+        var descriptor = FetchDescriptor<ChatMessage>(
+            predicate: currentThreadID.map { id in
+                #Predicate<ChatMessage> { $0.threadID == id }
+            },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
-        if let saved = try? modelContext.fetch(descriptor) {
-            messages = saved
+        descriptor.fetchLimit = 100
+        do {
+            let saved = try modelContext.fetch(descriptor)
+            messages = saved.reversed()
+        } catch {
+            logger.error("Failed to load messages: \(error.localizedDescription)")
         }
+    }
+}
+
+// MARK: - Data URL Decoder
+
+extension Data {
+    /// 从 data URL（data:image/...;base64,...）解码图片数据
+    static func fromDataURL(_ string: String) -> Data? {
+        guard let commaIndex = string.firstIndex(of: ",") else { return nil }
+        let base64 = String(string[string.index(after: commaIndex)...])
+        return Data(base64Encoded: base64)
     }
 }

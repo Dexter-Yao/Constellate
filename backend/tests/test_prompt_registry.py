@@ -13,7 +13,7 @@ class TestPromptRegistry:
 
     def setup_method(self) -> None:
         """每个测试前重置 registry 状态。"""
-        PromptRegistry._env = None
+        PromptRegistry.reset()
 
     def test_load_creates_environment(self, tmp_path: Path) -> None:
         """load 应创建 Jinja2 Environment。"""

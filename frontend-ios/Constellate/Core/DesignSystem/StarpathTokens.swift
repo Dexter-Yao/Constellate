@@ -39,17 +39,6 @@ enum StarpathTokens {
     /// 次要标签、时间戳、占位符文字
     static let obsidian40 = obsidian.opacity(0.40)
 
-    // MARK: - 字体
-
-    /// 叙事层：Coach 消息、Journal 文本、教练洞察文案
-    static let fontSerif = Font.custom("NotoSerifSC-Regular", size: 16)
-
-    /// 界面层：用户消息、输入框、按钮文案、数据摘要
-    static let fontSans = Font.system(size: 14, design: .default)
-
-    /// 信号层：底部标签栏、时间戳、数值指标、数据标签
-    static let fontMono = Font.system(size: 12, design: .monospaced)
-
     // MARK: - 字号
 
     /// 等宽标签、时间戳、数据单位 (12px)
@@ -78,14 +67,9 @@ enum StarpathTokens {
     // MARK: - 行高
 
     static let lineHeightBody: CGFloat = 1.6
-    static let lineHeightHeading: CGFloat = 1.3
-    static let lineHeightData: CGFloat = 1.0
 
     // MARK: - 布局
 
     /// 消息间距
     static let messageGap: CGFloat = 16
-
-    /// 卡片图片宽高比
-    static let mapCardImageRatio: CGFloat = 3.0 / 4.0
 }

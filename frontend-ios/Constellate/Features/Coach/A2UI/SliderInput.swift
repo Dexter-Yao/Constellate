@@ -18,8 +18,7 @@ struct SliderInput: View {
                     .starpathMono()
                 Spacer()
                 Text("\(Int(value))")
-                    .font(.system(size: StarpathTokens.fontSizeSM, design: .monospaced))
-                    .foregroundStyle(StarpathTokens.obsidian)
+                    .starpathMono(size: StarpathTokens.fontSizeSM, uppercase: false)
             }
 
             Slider(

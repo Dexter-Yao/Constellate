@@ -14,8 +14,7 @@ class TestModelRegistry:
 
     def setup_method(self) -> None:
         """每个测试前重置 registry 状态。"""
-        ModelRegistry._profiles = {}
-        ModelRegistry._instances = {}
+        ModelRegistry.reset()
 
     def test_configure_loads_profiles(self) -> None:
         """configure 应加载 profile 配置。"""

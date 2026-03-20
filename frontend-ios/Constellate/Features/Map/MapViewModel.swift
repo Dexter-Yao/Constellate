@@ -4,7 +4,11 @@
 import Foundation
 import SwiftData
 import Observation
+import os
 
+private let logger = Logger(subsystem: "com.constellate", category: "MapViewModel")
+
+@MainActor
 @Observable
 final class MapViewModel {
     var cards: [InterventionCard] = []
@@ -26,14 +30,23 @@ final class MapViewModel {
     private func loadData() {
         guard let modelContext else { return }
 
-        let cardDescriptor = FetchDescriptor<InterventionCard>(
+        var cardDescriptor = FetchDescriptor<InterventionCard>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
-        cards = (try? modelContext.fetch(cardDescriptor)) ?? []
+        cardDescriptor.fetchLimit = 50
+        do {
+            cards = try modelContext.fetch(cardDescriptor)
+        } catch {
+            logger.error("Failed to load cards: \(error.localizedDescription)")
+        }
 
         let chapterDescriptor = FetchDescriptor<Chapter>(
             sortBy: [SortDescriptor(\.startDate, order: .reverse)]
         )
-        chapter = try? modelContext.fetch(chapterDescriptor).first
+        do {
+            chapter = try modelContext.fetch(chapterDescriptor).first
+        } catch {
+            logger.error("Failed to load chapter: \(error.localizedDescription)")
+        }
     }
 }

@@ -14,6 +14,7 @@ struct A2UIRenderer: View {
     @State private var numberValues: [String: String] = [:]
     @State private var selectValues: [String: String] = [:]
     @State private var multiSelectValues: [String: [String]] = [:]
+    @State private var decodedImages: [Int: UIImage] = [:]
 
     private var hasInputs: Bool {
         components.contains { $0.isInput }
@@ -21,8 +22,8 @@ struct A2UIRenderer: View {
 
     var body: some View {
         VStack(spacing: StarpathTokens.spacingLG) {
-            ForEach(Array(components.enumerated()), id: \.offset) { _, component in
-                componentView(for: component)
+            ForEach(Array(components.enumerated()), id: \.offset) { index, component in
+                componentView(for: component, at: index)
             }
 
             Spacer()
@@ -33,29 +34,29 @@ struct A2UIRenderer: View {
             }
         }
         .padding(StarpathTokens.spacingMD)
-        .onAppear { initializeValues() }
+        .onAppear {
+            initializeValues()
+            preDecodeImages()
+        }
     }
 
     // MARK: - Component Dispatch
 
     @ViewBuilder
-    private func componentView(for component: A2UIComponent) -> some View {
+    private func componentView(for component: A2UIComponent, at index: Int) -> some View {
         switch component {
         case .text(let data):
             Text(data.content)
                 .starpathSerif()
 
-        case .image(let data):
-            if data.src.hasPrefix("data:") {
-                if let imageData = decodeBase64Image(data.src),
-                   let uiImage = UIImage(data: imageData) {
-                    GeometryReader { geometry in
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: geometry.size.height * 0.6)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                    }
+        case .image:
+            if let uiImage = decodedImages[index] {
+                GeometryReader { geometry in
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: geometry.size.height * 0.6)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
             }
 
@@ -76,7 +77,7 @@ struct A2UIRenderer: View {
         case .textInput(let data):
             A2UITextInput(
                 config: data,
-                value: binding(for: data.name, in: $textValues, default: data.value ?? "")
+                value: binding(for: data.name, in: $textValues, default: data.value)
             )
 
         case .numberInput(let data):
@@ -88,13 +89,13 @@ struct A2UIRenderer: View {
         case .select(let data):
             SelectInput(
                 config: data,
-                value: binding(for: data.name, in: $selectValues, default: data.value ?? "")
+                value: binding(for: data.name, in: $selectValues, default: data.value)
             )
 
         case .multiSelect(let data):
             MultiSelectInput(
                 config: data,
-                values: multiSelectBinding(for: data.name, default: data.value ?? [])
+                values: multiSelectBinding(for: data.name, default: data.value)
             )
         }
     }
@@ -125,13 +126,13 @@ struct A2UIRenderer: View {
             case .slider(let d):
                 sliderValues[d.name] = Double(d.value ?? d.min ?? 1)
             case .textInput(let d):
-                textValues[d.name] = d.value ?? ""
+                textValues[d.name] = d.value
             case .numberInput(let d):
                 numberValues[d.name] = d.value.map { String($0) } ?? ""
             case .select(let d):
-                selectValues[d.name] = d.value ?? ""
+                selectValues[d.name] = d.value
             case .multiSelect(let d):
-                multiSelectValues[d.name] = d.value ?? []
+                multiSelectValues[d.name] = d.value
             default:
                 break
             }
@@ -166,11 +167,16 @@ struct A2UIRenderer: View {
         )
     }
 
-    // MARK: - Helpers
+    // MARK: - Image Pre-Decoding
 
-    private func decodeBase64Image(_ dataURL: String) -> Data? {
-        guard let commaIndex = dataURL.firstIndex(of: ",") else { return nil }
-        let base64 = String(dataURL[dataURL.index(after: commaIndex)...])
-        return Data(base64Encoded: base64)
+    private func preDecodeImages() {
+        for (index, component) in components.enumerated() {
+            if case .image(let data) = component,
+               data.src.hasPrefix("data:"),
+               let imageData = Data.fromDataURL(data.src),
+               let uiImage = UIImage(data: imageData) {
+                decodedImages[index] = uiImage
+            }
+        }
     }
 }

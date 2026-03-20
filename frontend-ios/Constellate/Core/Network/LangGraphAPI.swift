@@ -3,7 +3,7 @@
 
 import Foundation
 
-final class LangGraphAPI: @unchecked Sendable {
+struct LangGraphAPI: Sendable {
     private let sseClient = SSEClient()
 
     // MARK: - Thread Management
@@ -40,31 +40,6 @@ final class LangGraphAPI: @unchecked Sendable {
 
     /// 发送消息并获取流式响应
     func streamRun(threadID: String, message: String, imageData: Data? = nil) throws -> AsyncStream<SSEEvent> {
-        let request = try buildStreamRequest(threadID: threadID, message: message, imageData: imageData)
-        return sseClient.stream(request: request)
-    }
-
-    /// 恢复 A2UI 中断
-    func resumeInterrupt(threadID: String, action: String, data: [String: Any] = [:]) throws -> AsyncStream<SSEEvent> {
-        let request = try buildResumeRequest(threadID: threadID, action: action, data: data)
-        return sseClient.stream(request: request)
-    }
-
-    // MARK: - Request Builders
-
-    private func buildStreamRequest(threadID: String, message: String, imageData: Data?) throws -> URLRequest {
-        let url = APIConfiguration.baseURL
-            .appendingPathComponent("threads")
-            .appendingPathComponent(threadID)
-            .appendingPathComponent("runs")
-            .appendingPathComponent("stream")
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-        request.timeoutInterval = 300
-
         var content: [[String: Any]] = [
             ["type": "text", "text": message]
         ]
@@ -87,11 +62,25 @@ final class LangGraphAPI: @unchecked Sendable {
             "stream_mode": ["messages", "values"]
         ]
 
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        return request
+        let request = try buildStreamRequest(threadID: threadID, body: body)
+        return sseClient.stream(request: request)
     }
 
-    private func buildResumeRequest(threadID: String, action: String, data: [String: Any]) throws -> URLRequest {
+    /// 恢复 A2UI 中断
+    func resumeInterrupt(threadID: String, action: String, data: [String: Any] = [:]) throws -> AsyncStream<SSEEvent> {
+        let body: [String: Any] = [
+            "assistant_id": APIConfiguration.assistantID,
+            "command": ["resume": ["action": action, "data": data]],
+            "stream_mode": ["messages", "values"]
+        ]
+
+        let request = try buildStreamRequest(threadID: threadID, body: body)
+        return sseClient.stream(request: request)
+    }
+
+    // MARK: - Request Builder
+
+    private func buildStreamRequest(threadID: String, body: [String: Any]) throws -> URLRequest {
         let url = APIConfiguration.baseURL
             .appendingPathComponent("threads")
             .appendingPathComponent(threadID)
@@ -103,18 +92,6 @@ final class LangGraphAPI: @unchecked Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 300
-
-        let response: [String: Any] = [
-            "action": action,
-            "data": data
-        ]
-
-        let body: [String: Any] = [
-            "assistant_id": APIConfiguration.assistantID,
-            "command": ["resume": response],
-            "stream_mode": ["messages", "values"]
-        ]
-
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         return request
     }
@@ -129,4 +106,3 @@ final class LangGraphAPI: @unchecked Sendable {
         }
     }
 }
-

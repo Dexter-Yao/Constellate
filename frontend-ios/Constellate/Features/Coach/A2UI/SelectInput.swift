@@ -65,7 +65,7 @@ private struct OptionPill: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: StarpathTokens.fontSizeSM))
+                .starpathSans()
                 .foregroundStyle(isSelected ? StarpathTokens.parchment : StarpathTokens.obsidian)
                 .padding(.horizontal, StarpathTokens.spacingMD)
                 .padding(.vertical, StarpathTokens.spacingSM)

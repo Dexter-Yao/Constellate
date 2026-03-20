@@ -3,6 +3,7 @@
 
 import SwiftUI
 import PhotosUI
+import os
 
 struct InputBar: View {
     var onSend: (String, Data?) -> Void
@@ -131,7 +132,12 @@ struct InputBar: View {
         if speechService.isRecording {
             speechService.stopRecording()
         } else {
-            try? speechService.startRecording()
+            do {
+                try speechService.startRecording()
+            } catch {
+                Logger(subsystem: "com.constellate", category: "InputBar")
+                    .error("Failed to start recording: \(error.localizedDescription)")
+            }
         }
     }
 }

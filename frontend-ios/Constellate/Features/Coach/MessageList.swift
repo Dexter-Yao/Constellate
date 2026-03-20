@@ -30,7 +30,7 @@ struct MessageList: View {
                     }
 
                     // 流式指示器
-                    if isStreaming, let last = messages.last, last.role == "assistant", last.textContent.isEmpty {
+                    if isStreaming, let last = messages.last, last.role == .assistant, last.textContent.isEmpty {
                         HStack(spacing: StarpathTokens.spacingXS) {
                             ProgressView()
                                 .scaleEffect(0.7)
@@ -42,7 +42,7 @@ struct MessageList: View {
                 }
                 .padding(.horizontal, StarpathTokens.spacingMD)
                 .padding(.top, StarpathTokens.spacingMD)
-                .padding(.bottom, 80) // InputBar 空间
+                .padding(.bottom, StarpathTokens.spacingXL * 2 + StarpathTokens.spacingMD)
             }
             .onChange(of: messages.count) {
                 if let lastID = messages.last?.id {
@@ -77,9 +77,9 @@ private struct MessageBubble: View {
 
     var body: some View {
         HStack {
-            if message.role == "user" { Spacer(minLength: 60) }
+            if message.role == .user { Spacer(minLength: 60) }
 
-            VStack(alignment: message.role == "user" ? .trailing : .leading, spacing: StarpathTokens.spacingXS) {
+            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: StarpathTokens.spacingXS) {
                 // 图片附件
                 if let imageData = message.imageData, let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
@@ -91,7 +91,7 @@ private struct MessageBubble: View {
 
                 // 文本
                 if !message.textContent.isEmpty {
-                    if message.role == "assistant" {
+                    if message.role == .assistant {
                         Text(message.textContent)
                             .starpathSerif()
                     } else {
@@ -101,7 +101,7 @@ private struct MessageBubble: View {
                 }
             }
 
-            if message.role == "assistant" { Spacer(minLength: 60) }
+            if message.role == .assistant { Spacer(minLength: 60) }
         }
     }
 }

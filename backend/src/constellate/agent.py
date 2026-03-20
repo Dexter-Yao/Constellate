@@ -2,6 +2,7 @@
 # ABOUTME: 组装 DeepAgent 配置，创建 Coach Agent 实例（含 A2UI fan_out 工具与 Intervention Composer Subagent）
 
 from collections.abc import Callable
+from typing import Any
 
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.store.base import BaseStore
@@ -19,7 +20,7 @@ COACH_TOOLS = [fan_out]
 """Coach 直接调用的工具，通过 A2UI 组件组合实现动态交互。"""
 
 
-def _create_backend_factory() -> Callable:
+def _create_backend_factory() -> Callable[..., Any]:
     """创建 CompositeBackend 工厂函数。
 
     路由规则：

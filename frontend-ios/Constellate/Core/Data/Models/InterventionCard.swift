@@ -7,7 +7,7 @@ import SwiftData
 @Model
 final class InterventionCard {
     var id: String
-    var imageData: Data?
+    @Attribute(.externalStorage) var imageData: Data?
     var caption: String
     var purpose: String
     var timestamp: Date

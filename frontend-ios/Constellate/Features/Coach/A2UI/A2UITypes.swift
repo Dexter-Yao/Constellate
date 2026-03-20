@@ -58,19 +58,6 @@ enum A2UIComponent: Codable, Sendable {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
-        switch self {
-        case .text(let d): try d.encode(to: encoder)
-        case .image(let d): try d.encode(to: encoder)
-        case .protocolPrompt(let d): try d.encode(to: encoder)
-        case .slider(let d): try d.encode(to: encoder)
-        case .textInput(let d): try d.encode(to: encoder)
-        case .numberInput(let d): try d.encode(to: encoder)
-        case .select(let d): try d.encode(to: encoder)
-        case .multiSelect(let d): try d.encode(to: encoder)
-        }
-    }
-
     /// 输入组件的 name（用于收集响应数据）
     var inputName: String? {
         switch self {
@@ -103,7 +90,7 @@ struct TextComponentData: Codable, Sendable {
 struct ImageComponentData: Codable, Sendable {
     let kind: String
     let src: String
-    let alt: String?
+    let alt: String
 }
 
 struct ProtocolPromptData: Codable, Sendable {
@@ -129,7 +116,7 @@ struct TextInputData: Codable, Sendable {
     let name: String
     let label: String
     let placeholder: String?
-    let value: String?
+    let value: String
 }
 
 struct NumberInputData: Codable, Sendable {
@@ -145,7 +132,7 @@ struct SelectData: Codable, Sendable {
     let name: String
     let label: String
     let options: [SelectOption]
-    let value: String?
+    let value: String
 }
 
 struct MultiSelectData: Codable, Sendable {
@@ -153,7 +140,7 @@ struct MultiSelectData: Codable, Sendable {
     let name: String
     let label: String
     let options: [SelectOption]
-    let value: [String]?
+    let value: [String]
 }
 
 // MARK: - Payload & Response
@@ -170,10 +157,6 @@ struct A2UIPayload: Codable, Sendable, Identifiable {
         components.contains { $0.isProtocolPrompt }
     }
 
-    /// 是否包含输入组件
-    var hasInputs: Bool {
-        components.contains { $0.isInput }
-    }
 }
 
 enum A2UILayout: String, Codable, Sendable {
@@ -182,71 +165,3 @@ enum A2UILayout: String, Codable, Sendable {
     case full
 }
 
-struct A2UIResponse: Codable, Sendable {
-    let action: A2UIAction
-    let data: [String: AnyCodable]
-
-    init(action: A2UIAction, data: [String: Any] = [:]) {
-        self.action = action
-        self.data = data.mapValues { AnyCodable($0) }
-    }
-
-    /// 以 String 值查询 data 字段
-    func stringValue(forKey key: String) -> String? {
-        guard case .string(let v) = data[key] else { return nil }
-        return v
-    }
-}
-
-enum A2UIAction: String, Codable, Sendable {
-    case submit
-    case reject
-    case skip
-}
-
-// MARK: - AnyCodable Helper
-
-enum AnyCodable: Codable, Sendable {
-    case bool(Bool)
-    case int(Int)
-    case double(Double)
-    case string(String)
-    case strings([String])
-
-    init(_ value: Any) {
-        switch value {
-        case let v as Bool: self = .bool(v)
-        case let v as Int: self = .int(v)
-        case let v as Double: self = .double(v)
-        case let v as String: self = .string(v)
-        case let v as [String]: self = .strings(v)
-        default: self = .string("\(value)")
-        }
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let bool = try? container.decode(Bool.self) { self = .bool(bool) }
-        else if let int = try? container.decode(Int.self) { self = .int(int) }
-        else if let double = try? container.decode(Double.self) { self = .double(double) }
-        else if let string = try? container.decode(String.self) { self = .string(string) }
-        else if let array = try? container.decode([String].self) { self = .strings(array) }
-        else {
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "AnyCodable: unsupported type"
-            )
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch self {
-        case .bool(let v): try container.encode(v)
-        case .int(let v): try container.encode(v)
-        case .double(let v): try container.encode(v)
-        case .string(let v): try container.encode(v)
-        case .strings(let v): try container.encode(v)
-        }
-    }
-}

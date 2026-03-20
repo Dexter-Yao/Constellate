@@ -14,8 +14,7 @@ struct A2UITextInput: View {
 
             TextField(config.placeholder ?? "", text: $value, axis: .vertical)
                 .lineLimit(2...5)
-                .font(.system(size: StarpathTokens.fontSizeSM))
-                .foregroundStyle(StarpathTokens.obsidian)
+                .starpathSans()
                 .padding(StarpathTokens.spacingSM)
                 .background(
                     RoundedRectangle(cornerRadius: 4)

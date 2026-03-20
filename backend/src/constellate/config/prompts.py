@@ -25,7 +25,7 @@ class PromptRegistry:
         )
 
     @classmethod
-    def get(cls, name: str, **kwargs: str) -> str:
+    def get(cls, name: str, **kwargs: object) -> str:
         """获取并渲染指定名称的提示词模板。
 
         Args:
@@ -37,3 +37,8 @@ class PromptRegistry:
             raise RuntimeError(msg)
         template = cls._env.get_template(f"{name}.j2")
         return template.render(**kwargs)
+
+    @classmethod
+    def reset(cls) -> None:
+        """重置状态，供测试使用。"""
+        cls._env = None

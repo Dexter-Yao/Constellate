@@ -10,7 +10,7 @@ struct EventRow: View {
         VStack(alignment: .leading, spacing: StarpathTokens.spacingXS) {
             HStack(alignment: .firstTextBaseline) {
                 // 事件类型
-                Text(eventTypeLabel)
+                Text(event.type.label)
                     .starpathSans()
 
                 Spacer()
@@ -30,8 +30,7 @@ struct EventRow: View {
             // 数据摘要
             if let dataSummary = buildDataSummary() {
                 Text(dataSummary)
-                    .font(.system(size: StarpathTokens.fontSizeXS, design: .monospaced))
-                    .foregroundStyle(StarpathTokens.obsidian40)
+                    .starpathMono(uppercase: false)
             }
 
             // 证据引用
@@ -46,8 +45,7 @@ struct EventRow: View {
                 HStack(spacing: StarpathTokens.spacingXS) {
                     ForEach(event.tags, id: \.self) { tag in
                         Text("[\(tag)]")
-                            .font(.system(size: StarpathTokens.fontSizeXS, design: .monospaced))
-                            .foregroundStyle(StarpathTokens.obsidian40)
+                            .starpathMono(uppercase: false)
                     }
                 }
             }
@@ -55,17 +53,9 @@ struct EventRow: View {
         .padding(.vertical, StarpathTokens.spacingSM)
     }
 
-    private var eventType: EventType {
-        event.type
-    }
-
-    private var eventTypeLabel: String {
-        eventType.label
-    }
-
     private func buildDataSummary() -> String? {
         var parts: [String] = []
-        switch eventType {
+        switch event.type {
         case .meal:
             if let kcal = event.kcal { parts.append("\(Int(kcal)) kcal") }
             if let p = event.proteinG { parts.append("P\(Int(p))g") }

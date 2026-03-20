@@ -72,6 +72,12 @@ class ModelRegistry:
         return resolved
 
     @classmethod
+    def reset(cls) -> None:
+        """重置状态，供测试使用。"""
+        cls._profiles.clear()
+        cls._instances.clear()
+
+    @classmethod
     def get(cls, profile: str) -> BaseChatModel:
         """获取指定 profile 的模型实例，自动缓存。"""
         if profile not in cls._instances:

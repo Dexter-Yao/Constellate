@@ -15,8 +15,7 @@ struct NumberInput: View {
             HStack(spacing: StarpathTokens.spacingSM) {
                 TextField("", text: $value)
                     .keyboardType(.decimalPad)
-                    .font(.system(size: StarpathTokens.fontSizeSM))
-                    .foregroundStyle(StarpathTokens.obsidian)
+                    .starpathSans()
                     .padding(StarpathTokens.spacingSM)
                     .background(
                         RoundedRectangle(cornerRadius: 4)
@@ -25,7 +24,7 @@ struct NumberInput: View {
 
                 if let unit = config.unit, !unit.isEmpty {
                     Text(unit)
-                        .font(.system(size: StarpathTokens.fontSizeSM))
+                        .starpathSans()
                         .foregroundStyle(StarpathTokens.obsidian40)
                 }
             }

@@ -17,9 +17,11 @@ enum APIConfiguration {
 
     static let assistantID = "coach"
 
+    private static let threadIDKey = "constellate_thread_id"
+
     /// 持久化 Thread ID
     static var threadID: String? {
-        get { UserDefaults.standard.string(forKey: "constellate_thread_id") }
-        set { UserDefaults.standard.set(newValue, forKey: "constellate_thread_id") }
+        get { UserDefaults.standard.string(forKey: threadIDKey) }
+        set { UserDefaults.standard.set(newValue, forKey: threadIDKey) }
     }
 }

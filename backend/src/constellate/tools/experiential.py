@@ -5,6 +5,7 @@ import base64
 import hashlib
 import os
 import uuid
+from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Annotated
 
@@ -22,12 +23,14 @@ from constellate.a2ui import (
     TextComponent,
 )
 
-_intervention_cache: dict[str, tuple[str, str]] = {}
-"""模块级缓存，避免 resume 重执行时重复调用 Gemini API。
+_CACHE_MAXSIZE = 32
+
+_intervention_cache: OrderedDict[str, tuple[str, str]] = OrderedDict()
+"""模块级有界缓存，避免 resume 重执行时重复调用 Gemini API。
 
 LangGraph 在 interrupt() 后 resume 时会从 node 起重新执行。
 缓存确保同一 prompt 不会重复调用付费 API。
-值为 (base64_data, mime_type) 元组。
+值为 (base64_data, mime_type) 元组。超过 _CACHE_MAXSIZE 时 FIFO 淘汰。
 """
 
 INTERVENTIONS_NAMESPACE = ("constellate", "user", "interventions")
@@ -93,8 +96,12 @@ def compose_experiential_intervention(
         from google import genai
         from google.genai import types
 
-        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-        response = client.models.generate_content(
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY 环境变量未设置")
+
+        client = genai.Client(api_key=api_key)
+        gen_response = client.models.generate_content(
             model="gemini-3-pro-image-preview",
             contents=prompt,
             config=types.GenerateContentConfig(
@@ -104,11 +111,19 @@ def compose_experiential_intervention(
                 ),
             ),
         )
-        image_part = response.candidates[0].content.parts[0]
+        if (
+            not gen_response.candidates
+            or not gen_response.candidates[0].content.parts
+        ):
+            return "Failed to generate intervention content."
+
+        image_part = gen_response.candidates[0].content.parts[0]
         _intervention_cache[cache_key] = (
             base64.b64encode(image_part.inline_data.data).decode(),
             image_part.inline_data.mime_type or "image/jpeg",
         )
+        if len(_intervention_cache) > _CACHE_MAXSIZE:
+            _intervention_cache.popitem(last=False)
 
     cached_b64, cached_mime = _intervention_cache[cache_key]
 
@@ -128,12 +143,12 @@ def compose_experiential_intervention(
         layout="full",
     )
     raw_response = interrupt(payload.model_dump())
-    response = A2UIResponse.model_validate(raw_response)
+    ui_response = A2UIResponse.model_validate(raw_response)
 
-    if response.action == "reject":
+    if ui_response.action == "reject":
         _intervention_cache.pop(cache_key, None)
         return f"User dismissed the experiential intervention ({purpose})."
-    if response.data.get("decision") == "accept":
+    if ui_response.data.get("decision") == "accept":
         _persist_card(
             store=store,
             image_data_url=f"data:{cached_mime};base64,{cached_b64}",

@@ -4,18 +4,23 @@
 import Foundation
 import SwiftData
 
+enum MessageRole: String, Codable {
+    case user
+    case assistant
+}
+
 @Model
 final class ChatMessage {
     var id: String
-    var role: String
+    var role: MessageRole
     var textContent: String
-    var imageData: Data?
+    @Attribute(.externalStorage) var imageData: Data?
     var timestamp: Date
     var threadID: String
 
     init(
         id: String = UUID().uuidString,
-        role: String,
+        role: MessageRole,
         textContent: String,
         imageData: Data? = nil,
         timestamp: Date = .now,

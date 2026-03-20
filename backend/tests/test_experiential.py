@@ -1,6 +1,7 @@
 # ABOUTME: 体验式干预工具测试
 # ABOUTME: 验证 compose_experiential_intervention 使用 A2UI payload 格式并正确处理用户响应
 
+import hashlib
 from unittest.mock import patch
 
 import pytest
@@ -18,7 +19,7 @@ TEST_PROMPT = "test prompt for intervention"
 @pytest.fixture(autouse=True)
 def _prefill_cache() -> None:
     """预填充缓存，跳过 Gemini API 调用。"""
-    cache_key = hash(TEST_PROMPT)
+    cache_key = hashlib.sha256(TEST_PROMPT.encode()).hexdigest()
     _intervention_cache[cache_key] = (FAKE_B64, FAKE_MIME)
     yield
     _intervention_cache.pop(cache_key, None)

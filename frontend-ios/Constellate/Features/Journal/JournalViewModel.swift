@@ -4,7 +4,11 @@
 import Foundation
 import SwiftData
 import Observation
+import os
 
+private let logger = Logger(subsystem: "com.constellate", category: "JournalViewModel")
+
+@MainActor
 @Observable
 final class JournalViewModel {
     var groupedEvents: [(date: Date, events: [BehaviorEvent])] = []
@@ -19,10 +23,18 @@ final class JournalViewModel {
     private func loadEvents() {
         guard let modelContext else { return }
 
-        let descriptor = FetchDescriptor<BehaviorEvent>(
+        var descriptor = FetchDescriptor<BehaviorEvent>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
-        guard let events = try? modelContext.fetch(descriptor) else { return }
+        descriptor.fetchLimit = 200
+
+        let events: [BehaviorEvent]
+        do {
+            events = try modelContext.fetch(descriptor)
+        } catch {
+            logger.error("Failed to load events: \(error.localizedDescription)")
+            return
+        }
 
         let calendar = Calendar.current
         var grouped: [Date: [BehaviorEvent]] = [:]
