@@ -1,0 +1,145 @@
+// ABOUTME: LangGraph REST API 客户端，管理 Thread 和 Run 生命周期
+// ABOUTME: 处理流式对话、A2UI 中断/恢复、Store 查询
+
+import Foundation
+
+final class LangGraphAPI {
+    private let sseClient = SSEClient()
+
+    // MARK: - Thread Management
+
+    /// 创建新的对话线程
+    func createThread() async throws -> String {
+        let url = APIConfiguration.baseURL.appendingPathComponent("threads")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validateResponse(response)
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let threadID = json["thread_id"] as? String else {
+            throw LangGraphError.invalidJSON
+        }
+        return threadID
+    }
+
+    /// 确保有可用的 Thread ID
+    func ensureThread() async throws -> String {
+        if let existing = APIConfiguration.threadID {
+            return existing
+        }
+        let threadID = try await createThread()
+        APIConfiguration.threadID = threadID
+        return threadID
+    }
+
+    // MARK: - Streaming
+
+    /// 发送消息并获取流式响应
+    func streamRun(threadID: String, message: String, imageData: Data? = nil) -> AsyncStream<SSEEvent> {
+        let request = buildStreamRequest(threadID: threadID, message: message, imageData: imageData)
+        return sseClient.stream(request: request)
+    }
+
+    /// 恢复 A2UI 中断
+    func resumeInterrupt(threadID: String, action: String, data: [String: Any] = [:]) -> AsyncStream<SSEEvent> {
+        let request = buildResumeRequest(threadID: threadID, action: action, data: data)
+        return sseClient.stream(request: request)
+    }
+
+    // MARK: - Request Builders
+
+    private func buildStreamRequest(threadID: String, message: String, imageData: Data?) -> URLRequest {
+        let url = APIConfiguration.baseURL
+            .appendingPathComponent("threads")
+            .appendingPathComponent(threadID)
+            .appendingPathComponent("runs")
+            .appendingPathComponent("stream")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 300
+
+        var content: [[String: Any]] = [
+            ["type": "text", "text": message]
+        ]
+
+        if let imageData {
+            let base64 = imageData.base64EncodedString()
+            content.append([
+                "type": "image_url",
+                "image_url": ["url": "data:image/jpeg;base64,\(base64)"]
+            ])
+        }
+
+        let body: [String: Any] = [
+            "assistant_id": APIConfiguration.assistantID,
+            "input": [
+                "messages": [
+                    ["role": "user", "content": content]
+                ]
+            ],
+            "stream_mode": ["messages"]
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+
+    private func buildResumeRequest(threadID: String, action: String, data: [String: Any]) -> URLRequest {
+        let url = APIConfiguration.baseURL
+            .appendingPathComponent("threads")
+            .appendingPathComponent(threadID)
+            .appendingPathComponent("runs")
+            .appendingPathComponent("stream")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 300
+
+        let response: [String: Any] = [
+            "action": action,
+            "data": data
+        ]
+
+        let body: [String: Any] = [
+            "assistant_id": APIConfiguration.assistantID,
+            "command": ["resume": response],
+            "stream_mode": ["messages"]
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+
+    // MARK: - Validation
+
+    private func validateResponse(_ response: URLResponse) throws {
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw LangGraphError.httpError(code)
+        }
+    }
+}
+
+// MARK: - Errors
+
+enum LangGraphError: LocalizedError {
+    case invalidJSON
+    case httpError(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidJSON: return "Invalid JSON response"
+        case .httpError(let code): return "HTTP error: \(code)"
+        }
+    }
+}
