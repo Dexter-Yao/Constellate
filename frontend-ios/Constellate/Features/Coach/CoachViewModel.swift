@@ -10,6 +10,7 @@ final class CoachViewModel {
     var messages: [ChatMessage] = []
     var isStreaming = false
     var errorMessage: String?
+    var activeInterrupt: A2UIPayload?
 
     private let api = LangGraphAPI()
     private var modelContext: ModelContext?
@@ -28,7 +29,6 @@ final class CoachViewModel {
 
         let threadID = APIConfiguration.threadID ?? ""
 
-        // 添加用户消息到本地
         let userMessage = ChatMessage(
             role: "user",
             textContent: text,
@@ -38,7 +38,6 @@ final class CoachViewModel {
         messages.append(userMessage)
         modelContext?.insert(userMessage)
 
-        // 准备 assistant 占位消息
         let assistantMessage = ChatMessage(
             role: "assistant",
             textContent: "",
@@ -54,7 +53,6 @@ final class CoachViewModel {
             do {
                 let threadID = try await api.ensureThread()
 
-                // 更新 threadID（首次创建时）
                 if userMessage.threadID.isEmpty {
                     userMessage.threadID = threadID
                     assistantMessage.threadID = threadID
@@ -66,53 +64,105 @@ final class CoachViewModel {
                     imageData: imageData
                 )
 
-                var fullContent = ""
-
-                for await event in stream {
-                    if Task.isCancelled { break }
-
-                    switch event {
-                    case .token(let content):
-                        fullContent = content
-                        await MainActor.run {
-                            assistantMessage.textContent = fullContent
-                        }
-
-                    case .message(_, let content):
-                        fullContent = content
-                        await MainActor.run {
-                            assistantMessage.textContent = fullContent
-                        }
-
-                    case .interrupt:
-                        // Phase 2 处理 A2UI 中断
-                        break
-
-                    case .done:
-                        break
-
-                    case .error(let error):
-                        await MainActor.run {
-                            self.errorMessage = error.localizedDescription
-                        }
-                    }
-                }
-
-                await MainActor.run {
-                    assistantMessage.textContent = fullContent
-                    self.modelContext?.insert(assistantMessage)
-                    self.isStreaming = false
-                }
+                await processStream(stream, assistantMessage: assistantMessage)
             } catch {
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
                     self.isStreaming = false
-                    // 移除空的 assistant 占位消息
                     if assistantMessage.textContent.isEmpty {
                         self.messages.removeLast()
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - A2UI Interrupt Handlers
+
+    func submitA2UIResponse(_ data: [String: Any]) {
+        guard activeInterrupt != nil else { return }
+        activeInterrupt = nil
+        resumeWithAction("submit", data: data)
+    }
+
+    func rejectA2UI() {
+        guard activeInterrupt != nil else { return }
+        activeInterrupt = nil
+        resumeWithAction("reject")
+    }
+
+    func skipA2UI() {
+        guard activeInterrupt != nil else { return }
+        activeInterrupt = nil
+        resumeWithAction("skip")
+    }
+
+    private func resumeWithAction(_ action: String, data: [String: Any] = [:]) {
+        guard let threadID = APIConfiguration.threadID else { return }
+
+        let assistantMessage = ChatMessage(
+            role: "assistant",
+            textContent: "",
+            threadID: threadID
+        )
+        messages.append(assistantMessage)
+        isStreaming = true
+
+        streamTask = Task { [weak self] in
+            guard let self else { return }
+            let stream = await api.resumeInterrupt(
+                threadID: threadID,
+                action: action,
+                data: data
+            )
+            await processStream(stream, assistantMessage: assistantMessage)
+        }
+    }
+
+    // MARK: - Stream Processing
+
+    private func processStream(_ stream: AsyncStream<SSEEvent>, assistantMessage: ChatMessage) async {
+        var fullContent = ""
+
+        for await event in stream {
+            if Task.isCancelled { break }
+
+            switch event {
+            case .token(let content):
+                fullContent = content
+                await MainActor.run {
+                    assistantMessage.textContent = fullContent
+                }
+
+            case .message(_, let content):
+                fullContent = content
+                await MainActor.run {
+                    assistantMessage.textContent = fullContent
+                }
+
+            case .interrupt(let data):
+                if let payload = try? JSONDecoder().decode(A2UIPayload.self, from: data) {
+                    await MainActor.run {
+                        self.activeInterrupt = payload
+                        self.isStreaming = false
+                    }
+                    return
+                }
+
+            case .done:
+                break
+
+            case .error(let error):
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+
+        await MainActor.run {
+            assistantMessage.textContent = fullContent
+            self.modelContext?.insert(assistantMessage)
+            self.isStreaming = false
         }
     }
 

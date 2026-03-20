@@ -1,5 +1,5 @@
-// ABOUTME: Coach 对话页主视图，承载 MessageList + InputBar
-// ABOUTME: Phase 2 将增加 FanOutPanel sheet overlay
+// ABOUTME: Coach 对话页主视图，承载 MessageList + InputBar + FanOutPanel
+// ABOUTME: A2UI 中断时以 sheet 形式弹出扇出面板
 
 import SwiftUI
 import SwiftData
@@ -10,17 +10,14 @@ struct CoachView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // 背景色
             StarpathTokens.parchment
                 .ignoresSafeArea()
 
-            // 消息列表
             MessageList(
                 messages: viewModel.messages,
                 isStreaming: viewModel.isStreaming
             )
 
-            // 输入栏
             VStack(spacing: 0) {
                 StarpathDivider()
                 InputBar(
@@ -33,6 +30,23 @@ struct CoachView: View {
         }
         .onAppear {
             viewModel.configure(modelContext: modelContext)
+        }
+        .sheet(item: $viewModel.activeInterrupt) { payload in
+            FanOutPanel(
+                payload: payload,
+                onSubmit: { data in
+                    viewModel.submitA2UIResponse(data)
+                },
+                onReject: {
+                    viewModel.rejectA2UI()
+                },
+                onSkip: {
+                    viewModel.skipA2UI()
+                }
+            )
+            .presentationDetents(payload.layout.detents)
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(StarpathTokens.parchment.opacity(0.98))
         }
         .alert("连接错误", isPresented: showingError) {
             Button("确定") { viewModel.errorMessage = nil }
